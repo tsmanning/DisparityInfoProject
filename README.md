@@ -1,1 +1,1 @@
-# FisherDisparityProject
+# DisparityInfoProject
