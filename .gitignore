@@ -1,0 +1,6 @@
+./old
+*.fig
+*.eps
+*.mat
+*.svg
+*.png
