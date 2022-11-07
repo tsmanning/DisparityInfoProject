@@ -1,0 +1,137 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2513
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 ArialMT;\f1\fswiss\fcharset0 Arial-BoldMT;}
+{\colortbl;\red255\green255\blue255;\red26\green26\blue26;\red255\green255\blue255;\red62\green0\blue63;
+\red26\green26\blue26;}
+{\*\expandedcolortbl;;\cssrgb\c13333\c13333\c13333;\cssrgb\c100000\c100000\c100000;\cssrgb\c31373\c0\c31373;
+\cssrgb\c13333\c13333\c13333;}
+\margl1440\margr1440\vieww18700\viewh16280\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\fs26 \cf2 \cb3 \expnd0\expndtw0\kerning0
+\
+Here is a matlab file containing a larger set of tuning curves for V1 and V2.\'a0 Format much like the previous file, but there is a new field\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 .rf\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 which contains the X,Y co-ordinates\'a0of the RF.\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 .visualarea\'a0\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 is either 1 (V1) or 2 (V2). Cells recorded in V1 from the Calcarine Sulcus also have a 1.\'a0 Anything with an eccentricity > 9 degrees will be from the calcarine.\'a0\'a0\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 The RF estimates are mostly based on hand measurements online (thats what I have on my laptop).\'a0 If I get granted access to the NIH disks again I could update these with quantitative estimates, but the locations will be pretty close.\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 In a few cases I was missing the RF estimate on my laptop. I have made an estimate based on the RF locations of nearby penetrations.\'a0 In these cases the field .err is set to 1.\'a0 \'a0These will nearly all be within 1 or 2 degrees of correct.\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 You may notice there are a large number of cells with an identical RF location very close to the fovea.\'a0 These were all recorded with a Utah array, so the recorded "hand estimate" of the RF is the same for all of them.\'a0 And they were all very close to this.\'a0\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 I have already removed all cells that did not pass a one-way ANOVA with p < 0.01.\'a0 This shortened the list of cells I had to sort out RFs for.\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 A decent number of the tuning curves are still crappy, so some additional selection may be a good idea (as discussed before).\'a0\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 The disparity values are all in terms of displacement on the monitor, so they are not adjusted for the geometrical horopter.\'a0 \'a0If you want to do this, some care is required.\'a0 For many of the eccentric RFs we have to move the fixation point to the opposite side of the screen so that the RF was not off screen or too close to the edge.\'a0 The the horopter adjustment is different than if the fixation was central.\'a0\'a0\
+The location of the fixation point is recorded in .fp.\'a0 \'a0Some of these are still NaNs, indicating that I don't have the recorded value here, but they are all for central RFs where I can be pretty sure the location was 0,0 (For many years we only recorded on the operculum with a central fixation point, so the notes didn't record the fact).\'a0 Again, I can fix this if I get access to the NIH disks again.\'a0\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 Think thats\'a0it. Happy to answer any questions of course\
+\
+\
+\pard\pardeftab720\partightenfactor0
+\cf4 Just a few questions:\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 1) In the .rf field, the X,Y coordinates are in visual degrees from the fixation point? Yes\cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf4 \
+\cb3 If so, what convention did you use to calculate angular values from screen position? Attaching Jenny's great diagram of angular coordinates for easy reference.\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 It\'92s atan(x/d) where x is displacement on screen, d is distance to nodal point\'a0from the screen\
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb1 \
+\
+\cb3 2) Similar to the previous dataset, is it correct that positive X values are leftward in the animal's visual field?\cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 yes. (Don\'92t ask).\'a0\
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb1 \
+\
+\cb3 3) I just wanted to confirm that the .resp field is already in units of spikes per second and the disparity sign convention is negative = crossed?\cb1 \
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 Actually .resp is in units of mean spike count, not divided by duration.\'a0 \'a0Duration was 0.5sec\'a0 0.47 or 0.42 sec (different studies).\'a0 There is a field in the dxresp that records a\'a0 number related to the stimulus duration\cb1 \
+\cb3 (This gets complicated, on some trials the graphics card fails to keep up, so it takes 43 video frames to paint 42 actual frames.\'a0 The duration number in these files depends on the distribution of real durations in the expt.)\'a0 But I always just count spikes over either 420ms o470, or\'a0 500ms, whichever is the nominal (and so shortest) duration.\'a0 SO if "duration" is <\'a0 0.47, its 420ms.\'a0 if its\'a0> 0.47 and < 0.49, its 470ms (names all begin 'jbeG')\'a0 and if its\'a0> 0.49, its 500ms (names all begin 'jbeM' or 'lemM')\cb1 \
+\
+\
+\
+\pard\pardeftab720\partightenfactor0
+\cf4 \cb3 \'a0\cb1 \
+\cb3 4) Can you point me to the paper(s) that best describe the stimulus/methods used for these recordings?\cb1 \
+\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb3 The data come from 
+\f1\b Cumming (2002)
+\f0\b0 , \
+
+\f1\b Read and Cumming ( 2003: 2004; 2005)
+\f0\b0 , 
+\f1\b Nienborg and Cumming (2006)
+\f0\b0 , 
+\f1\b Nienborg et al (2005: 2004)
+\f0\b0  , 
+\f1\b Tanabe and Cumming (2008)
+\f0\b0  
+\f1\b Tanabe Haefner and Cumming (2011)\'a0
+\f0\b0 \cb1 \
+
+\f1\b \cb3 Cleary Cumming and Nienborg (2017)
+\f0\b0  
+\f1\b Henricksen Read and Cuming (2016).\'a0
+\f0\b0 \cb1 \
+\
+\cb3 In many of these studies the disparity tuning curve was a necessary preliminary\'a0 measurement, but things were changed for the main data of the paper (e.g the duration for the CP measurements in Nienborg and Cumming were longer.\cb1 \
+\cb3 Some of the\'a0 data are still unpublished.\cb1 \
+\
+\cb3 The best description of MOST of the methods is probably in Read and Cumming (2003). But ironically this did not apply the disparity horizontally, so I have not included those data.\'a0 (I have them, but I need access to the NIH disks to get the orientation of the axis that was used).\'a0 R+C 2005 uses horizontal disparity and is otherwise similar.\'a0 So you could just cite those two and say the other data were collected with the same methods.\'a0\cb1 \
+\
+\cb3 For the unpublisheed\'a0data using 500ms duration things are very slightly different.\'a0 \'a0In all the previous work there was a 100ms grey screen between each stimulus.\'a0 For these data there was no gap - frames 1-50 had one disparity and frames 51-100 had another disparity. And there were 6 stimuli per fixation trial (3sec). Whereas all the earlier work used 4 stimuli in a 2 sec trial.\'a0 \'a0Hard to imagine any of this matters, but thats what it is.\cb1 \
+\cb3 The student who did this just defended her thesis, so you could cite that if you need someting?\'a0\'a0\
+\
+\
+NEW DATA\
+\
+\pard\pardeftab720\partightenfactor0
+\cf5 \outl0\strokewidth0 \strokec5 So there are two new fields,\
+\cb1 \
+\cb3 .or the RF orientation, which defines the axis along which disparities were displaced.\'a0\'a0\
+In experiments where horizontal disparity was applied, ignoring orientation, I have set this to NaN.\'a0 \'a0\
+\cb1 \
+\cb3 .exptype\
+\cb1 \
+\cb3 if this is a 3 or a 4 it means that the disparity was applied orthogonal to the RF ori.\'a0 If the RF or is 90, then this is horizontal disparity.\'a0\
+\cb1 \
+\cb3 NOTE when RF or is -90 the disparity is still horizontal, but the direction is reversed.\'a0 So now negative values are uncrossed.\'a0\'a0\
+\pard\pardeftab720\partightenfactor0
+\cf2 \cb1 \outl0\strokewidth0 \
+}
