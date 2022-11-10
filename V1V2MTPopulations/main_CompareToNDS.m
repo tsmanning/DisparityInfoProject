@@ -4,6 +4,10 @@ close all;
 flag = '';
 %flag = '_resampledV1MT';
 
+splPath = regexp(which('main_CompareToNDS'),filesep,'split');
+
+dataDir = [filesep,fullfile(splPath{1:numel(splPath)-2}),filesep,'SceneStatsAnalysis/saveImageStats_BORISdataset/'];
+
 % load in FI data
 dat = load(['results_GaussFit' flag '.mat']);
 
@@ -25,11 +29,8 @@ figRMSE = figure;
 for s = 1:length(sampling)
     
     % load data
-    sndo = load(['/Users/emily/Dropbox/FisherDisparityProject/FisherDisparityProjectShared/SceneStatsAnalysis/DataFromTyler/dispHist' sampling{s} '_sando.mat']);
-    wlk = load(['/Users/emily/Dropbox/FisherDisparityProject/FisherDisparityProjectShared/SceneStatsAnalysis/DataFromTyler/dispHist' sampling{s} '_walking.mat']);
-    %sndo = load(['C:/Users/alexa/Dropbox/FisherDisparityProjectShared/SceneStatsAnalysis/DataFromTyler/dispHist' sampling{s} '_sando.mat']);
-    %wlk = load(['C:/Users/alexa/Dropbox/FisherDisparityProjectShared/SceneStatsAnalysis/DataFromTyler/dispHist' sampling{s} '_walking.mat']);
-    
+    sndo = load([dataDir,'dispHist' sampling{s} '_sando.mat']);
+    wlk = load([dataDir,'dispHist' sampling{s} '_walking.mat']);
     
     if s == 1
         Sando(s,:)  = sndo.dispHistCirc./sum(sndo.dispHistCirc);
@@ -56,8 +57,8 @@ for s = 1:length(sampling)
     
     % if using the resampled V1, and MT data, all disparity stats should match V2
     if strcmp(flag,'_resampledV1MT') && s > 1
-        sndo = load(['/Users/emily/Dropbox/FisherDisparityProject/FisherDisparityProjectShared/SceneStatsAnalysis/DataFromTyler/dispHistV2_sando.mat']);
-        wlk = load(['/Users/emily/Dropbox/FisherDisparityProject/FisherDisparityProjectShared/SceneStatsAnalysis/DataFromTyler/dispHistV2_walking.mat']);
+        sndo = load([dataDir,'dispHistV2_sando.mat']);
+        wlk = load([dataDir,'dispHistV2_walking.mat']);
         Sando(s,:)  = sndo.dispHistV2./sum(sndo.dispHistV2);
         Walk(s,:)   = wlk.dispHistV2./sum(wlk.dispHistV2);
     end

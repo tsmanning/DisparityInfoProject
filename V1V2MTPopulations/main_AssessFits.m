@@ -1,26 +1,45 @@
-clear all; close all;
-addpath(genpath('./helper_functions'));
-plotallfits = 0;
 
-% load fitting results
+% Summarize results of fitting cell populations with Gabors
+
+clear all; 
+close all;
+
+splPath = regexp(which('main_AssessFits.m'),filesep,'split');
+topDir  = [filesep,fullfile(splPath{1:numel(splPath)-1}),filesep];
+
+addpath(genpath('./helper_functions'));
+
+plotallfits = 0;
+exampleFits = 0;
+saveOn      = 0;
+
+subsample = 'all';
+% subsample = 'eccentricity';
+% subsample = 'fitQuality';
+
+% direc  = 'gt';
+direc  = 'lt';
+
+
+%% Load fitting results
 V1 = load('resultsV1_final.mat');
 V2 = load('resultsV2_final.mat');
 MT = load('resultsMT_final.mat');
 
 
-
-%% report how many cells in each population
+%% Report number of cells in each population
 display(['Num V1 units: ' num2str(numel(V1.E))]);
 display(['Num V2 units: ' num2str(numel(V2.E))]);
 display(['Num MT units: ' num2str(numel(MT.E))]);
 display(['Num TOTAL units: ' num2str(numel(V1.E)+numel(V2.E)+numel(MT.E))]);
 
-%% LOAD ADDITIONAL MT/V1 DATA AND APPEND TO DATA STRUCTURE
 
-% load MT metadata
+%% Load additional MT/V1 RF data and append to structure
+
+% Load MT metadata (RF location, original DeAngelis & Uka '03 fit pars)
 T_MT = readtable('metadataMT.xlsx');
 
-% for each file name in experiments, find index from xls and get other data
+% For each file name in experiments, find index from xls and get other data
 for f = 1:length(MT.experiments)
 
     % get filename
@@ -46,7 +65,7 @@ for f = 1:length(MT.experiments)
 
 end
 
-% grab V1 RF location data, much simpler
+% Grab V1 RF location data
 for v = 1:length(V1.experiments)
 
     % positive x is to the animals left in their visual field so we flip to match MT data, positive y is up
@@ -55,7 +74,7 @@ for v = 1:length(V1.experiments)
 
 end
 
-% grab V2 RF location data, much simpler
+% Grab V2 RF location data
 for v = 1:length(V2.experiments)
 
     % positive x is to the animals left in their visual field so we flip to match MT data, positive y is up
@@ -64,7 +83,7 @@ for v = 1:length(V2.experiments)
 
 end
 
-% calculate raw error R2 for each fit in each area
+% Calculate raw error R2 for each fit in each area
 % also calculate some other tuning characteristics
 areas   = {'V1','V2','MT'};
 xg1     = -2 : 0.01 : 2; % fixed range to evaluate tuning function
@@ -125,6 +144,67 @@ for a = 1:length(areas)
 
     end
 
+    % Optionally select only a subsample of cells to plot stats for
+    switch subsample
+        case 'fitQuality'
+            % select only the fits above/below a certain level
+            thresh = 0.75;
+            idxGuidance = area.r2;
+
+        case 'eccentricity'
+            % OR select based on eccentricity
+            thresh = 10;
+            idxGuidance = sqrt(area.x_pos.^2 + area.y_pos.^2);
+
+    end
+
+    if ~strcmp(subsample,'all')
+        theseFields = fields(area);
+        numExps     = length(area.experiments);
+
+        switch direc
+            case 'gt'
+                for ii = 1:numel(theseFields)
+                    thisSize = size(area.(theseFields{ii}));
+                    thisInd  = find(thisSize==numExps);
+
+                    if thisInd == 1
+                        incInd1 = idxGuidance>thresh;
+                        incInd2 = ones(thisSize(2),1,'logical');
+                    else
+                        incInd1 = ones(thisSize(1),1,'logical');
+                        incInd2 = idxGuidance>thresh;
+                    end
+
+                    area.(theseFields{ii}) = area.(theseFields{ii})(incInd1,incInd2);
+                end
+            case 'lt'
+                for ii = 1:numel(theseFields)
+                    thisSize = size(area.(theseFields{ii}));
+                    thisInd = find(thisSize==numExps);
+
+                    if thisInd == 1
+                        incInd1 = idxGuidance<thresh;
+                        incInd2 = ones(thisSize(2),1,'logical');
+                    else
+                        incInd1 = ones(thisSize(1),1,'logical');
+                        incInd2 = idxGuidance<thresh;
+                    end
+
+                    area.(theseFields{ii}) = area.(theseFields{ii})(incInd1,incInd2);
+                end
+        end
+    end
+
+    % fix phase wraparound
+    area.P(area.P(:,6)<-pi,6) = area.P(area.P(:,6)<-pi,6) + 2*pi;
+    area.P(area.P(:,6)>pi,6)  = area.P(area.P(:,6)>pi,6) - 2*pi;
+
+    if strcmp(areas{a},'MT')
+        area.GD_phi(area.GD_phi<-pi) = area.GD_phi(area.GD_phi<-pi) + 2*pi;
+        area.GD_phi(area.GD_phi>pi)  = area.GD_phi(area.GD_phi>pi) - 2*pi;
+    end
+
     switch areas{a}
 
         case 'V1';  V1 = area;
@@ -136,13 +216,15 @@ for a = 1:length(areas)
 
 end
 
-% save these structures with extra data
-save('resultsALL_final.mat','V1','V2','MT');
 
-%% FITTING QUALITY
+%% Plots
 
+% FIT QUALITY AND NUMBER OF REPEATS
+% ----------------------- %
 % histogram the mean repeats per stimulus disparity
-figure; hold on;
+f1 = figure; 
+f1.Position = [100 100 1200 700];
+hold on;
 edges = linspace(0,max([V1.mean_repeats V2.mean_repeats MT.mean_repeats]),20);
 subplot(2,3,1); hold on; title('Mean repeats per stim for V1 fits');
 h = histogram(V1.mean_repeats,edges);
@@ -173,12 +255,10 @@ h = histogram(MT.E,edges);
 h.FaceColor = ColorIt('r');
 axis square; box on;
 
-saveas(gcf,'./plots/AssessFits/Fit_MeanRepeatsAndError.png');
-saveas(gcf,'./plots/AssessFits/Fit_MeanRepeatsAndError.eps','epsc');
-
-
 % histogram R2
-figure; hold on;
+f2 = figure; 
+f2.Position = [100 100 1000 300];
+hold on;
 edges = linspace(0,1,20);
 subplot(1,3,1); hold on; title('V1 fits');
 h = histogram(V1.r2,edges);
@@ -207,91 +287,104 @@ display(['Median R2 V1 units: ' num2str(median(V1.r2))]);
 display(['Median R2 V2 units: ' num2str(median(V2.r2))]);
 display(['Median R2 MT units: ' num2str(median(MT.r2))]);
 
-saveas(gcf,'./plots/AssessFits/Fit_R2.png');
-saveas(gcf,'./plots/AssessFits/Fit_R2.eps','epsc');
 
-
-%% COMPARE PARAMETERS ACROSS REGIONS
+% COMPARE PARAMETERS ACROSS REGIONS
+% ----------------------- %
 % these are the raw fitted parameters, which can be a bit confusing because
 % they interact to determine the actual tuning curve shape (e.g., a
 % wide/shallow envelope + high amplitude can produce the same max spike
 % rate as a narrower envelope and a lower amplitude)
-figure; hold on;
+f3 = figure; 
+f3.Position = [100 100 1500 1000];
+hold on;
 param_list = {'Offset(b)','Amplitude(a)','Envelope mean(d0)','Envelope std(sigma)','Frequency(f)','Phase(phi)'};
+xlabs = {'Spikes/s','Spikes/s','Disparity(deg)','Disparty(deg)','cyc/deg','Radians'};
+
+fTix = [0.25 0.5 1 2 4];
+for ii = 1:numel(fTix)
+fTixLab{ii} = num2str(fTix(ii));
+end
+
+phTix    = [-pi -pi/2 0 pi/2 pi];
+phTixLab = {'-\pi' '-\pi/2' '0' '\pi/2' '\pi'};
+
 for p = 1:6
 
-    subplot(2,3,p); hold on; title(param_list{p});
-    distributionPlot([V1.P(:,p)],'xValues',3,'color',ColorIt('b'),'histOpt',1,'showMM',6,'xNames',{'V1'},'xyOri','flipped');
-    distributionPlot([V2.P(:,p)],'xValues',2,'color',ColorIt('g'),'histOpt',1,'showMM',6,'xNames',{'V2'},'xyOri','flipped');
-    distributionPlot([MT.P(:,p)],'xValues',1,'color',ColorIt('r'),'histOpt',1,'showMM',6,'xNames',{'MT'},'xyOri','flipped');
-    if p == 1 || p == 2 || p == 4 || p == 5
+    subplot(2,3,p); 
+    hold on; 
+    title(param_list{p});
+    
+    if p == 5
+        distributionPlot([log(V1.P(:,p))],'xValues',3,'color',ColorIt('b'),'histOpt',2,'divFactor',0.75,'showMM',6,'xNames',{'V1'},'xyOri','flipped');
+        distributionPlot([log(V2.P(:,p))],'xValues',2,'color',ColorIt('g'),'histOpt',2,'divFactor',0.75,'showMM',6,'xNames',{'V2'},'xyOri','flipped');
+        distributionPlot([log(MT.P(:,p))],'xValues',1,'color',ColorIt('r'),'histOpt',2,'divFactor',0.75,'showMM',6,'xNames',{'MT'},'xyOri','flipped');
+
+        set(gca,'xtick',log(fTix),'xticklabel',fTixLab,'xlim',log([fTix(1)*0.95 fTix(end)*1.05]));
+    elseif p == 6
+        distributionPlot([V1.P(:,p)],'xValues',3,'color',ColorIt('b'),'histOpt',1,'showMM',6,'xNames',{'V1'},'xyOri','flipped');
+        distributionPlot([V2.P(:,p)],'xValues',2,'color',ColorIt('g'),'histOpt',1,'showMM',6,'xNames',{'V2'},'xyOri','flipped');
+        distributionPlot([MT.P(:,p)],'xValues',1,'color',ColorIt('r'),'histOpt',1,'showMM',6,'xNames',{'MT'},'xyOri','flipped');
+
+        set(gca,'xtick',phTix,'xticklabel',phTixLab,'xlim',[-pi pi]);
+    else
+        distributionPlot([V1.P(:,p)],'xValues',3,'color',ColorIt('b'),'histOpt',1,'showMM',6,'xNames',{'V1'},'xyOri','flipped');
+        distributionPlot([V2.P(:,p)],'xValues',2,'color',ColorIt('g'),'histOpt',1,'showMM',6,'xNames',{'V2'},'xyOri','flipped');
+        distributionPlot([MT.P(:,p)],'xValues',1,'color',ColorIt('r'),'histOpt',1,'showMM',6,'xNames',{'MT'},'xyOri','flipped');
+    end
+
+    if p == 1 || p == 2 || p == 4
         xlim([0 quantile([V1.P(:,p)' V2.P(:,p)' MT.P(:,p)'],.99)])
     end
     axis equal square; box on;
+    set(gca,'ytick',[1 2 3],'YTickLabel',{'V1','V2','MT'});
+    xlabel(xlabs{p});
 
 end
 
-saveas(gcf,'./plots/AssessFits/Fit_Params.png');
-saveas(gcf,'./plots/AssessFits/Fit_Params.eps','epsc');
 
-%% COMMON SENSE PARAMETERS
+% COMMON SENSE PARAMETERS
+% ----------------------- %
 % convert to a set of common sense parameters about the tuning curve
 % baseline spike rate, max spike rate, preferred disparity, max abs derivative and circular phase
-figure; hold on;
+f4 = figure; 
+f4.Position = [100 100 1000 300];
+hold on;
 
 % baseline sps
-subplot(2,3,1); hold on; title('Baseline spike rate (sps)');
-%boxplot(V1.P(:,1),'Positions',-1,'Colors',ColorIt('b'),'Symbol','','Labels','V1')
-%boxplot(V2.P(:,1),'Positions',0,'Colors',ColorIt('g'),'Symbol','','Labels','V2')
-%boxplot(MT.P(:,1),'Positions',1,'Colors',ColorIt('r'),'Symbol','','Labels','MT')
+subplot(1,3,1); hold on; title('Baseline spike rate (sps)');
 distributionPlot([V1.P(:,1)],'xValues',3,'color',ColorIt('b'),'histOpt',1,'showMM',6,'xNames',{'V1'},'xyOri','flipped');
 distributionPlot([V2.P(:,1)],'xValues',2,'color',ColorIt('g'),'histOpt',1,'showMM',6,'xNames',{'V2'},'xyOri','flipped');
 distributionPlot([MT.P(:,1)],'xValues',1,'color',ColorIt('r'),'histOpt',1,'showMM',6,'xNames',{'MT'},'xyOri','flipped');
 xlim([0 quantile([V1.P(:,1)' V2.P(:,1)' MT.P(:,1)'],.99)])
 %xlim([-3 3])
 axis square; box on;
+set(gca,'ytick',[1 2 3],'YTickLabel',{'V1','V2','MT'});
+xlabel('Spikes/s');
 
 % max sps
-subplot(2,3,2); hold on; title('Maximum spike rate (sps)');
-%boxplot(V1.maxsps,'Positions',-1,'Colors',ColorIt('b'),'Symbol','','Labels','V1')
-%boxplot(V2.maxsps,'Positions',0,'Colors',ColorIt('g'),'Symbol','','Labels','V2')
-%boxplot(MT.maxsps,'Positions',1,'Colors',ColorIt('r'),'Symbol','','Labels','MT')
+subplot(1,3,2); hold on; title('Maximum spike rate (sps)');
 distributionPlot(V1.maxsps','xValues',3,'color',ColorIt('b'),'histOpt',1,'showMM',6,'xNames',{'V1'},'xyOri','flipped');
 distributionPlot(V2.maxsps','xValues',2,'color',ColorIt('g'),'histOpt',1,'showMM',6,'xNames',{'V2'},'xyOri','flipped');
 distributionPlot(MT.maxsps','xValues',1,'color',ColorIt('r'),'histOpt',1,'showMM',6,'xNames',{'MT'},'xyOri','flipped');
 xlim([0 quantile([V1.maxsps V2.maxsps MT.maxsps],.99)])
 %xlim([-3 3])
 axis square; box on;
+set(gca,'ytick',[1 2 3],'YTickLabel',{'V1','V2','MT'});
+xlabel('Spikes/s');
 
 % preferred disparity
-subplot(2,3,3); hold on; title('Preferred disparity (deg)');
+subplot(1,3,3); hold on; title('Preferred disparity (deg)');
 distributionPlot(V1.pref_disp','xValues',3,'color',ColorIt('b'),'histOpt',1,'showMM',6,'xNames',{'V1'},'xyOri','flipped');
 distributionPlot(V2.pref_disp','xValues',2,'color',ColorIt('g'),'histOpt',1,'showMM',6,'xNames',{'V2'},'xyOri','flipped');
 distributionPlot(MT.pref_disp','xValues',1,'color',ColorIt('r'),'histOpt',1,'showMM',6,'xNames',{'MT'},'xyOri','flipped');
 xlim([quantile([V1.pref_disp V2.pref_disp MT.pref_disp],.01) quantile([V1.pref_disp V2.pref_disp MT.pref_disp],.99)])
 axis square; box on;
+set(gca,'ytick',[1 2 3],'YTickLabel',{'V1','V2','MT'});
+xlabel('Disparity');
 
-% max absolute slope
-subplot(2,3,4); hold on; title('Max slope (sps/deg)');
-distributionPlot(V1.max_slope','xValues',3,'color',ColorIt('b'),'histOpt',1,'showMM',6,'xNames',{'V1'},'xyOri','flipped');
-distributionPlot(V2.max_slope','xValues',2,'color',ColorIt('g'),'histOpt',1,'showMM',6,'xNames',{'V2'},'xyOri','flipped');
-distributionPlot(MT.max_slope','xValues',1,'color',ColorIt('r'),'histOpt',1,'showMM',6,'xNames',{'MT'},'xyOri','flipped');
-xlim([0 quantile([V1.max_slope V2.max_slope MT.max_slope],.95)])
-axis square; box on;
-
-% odd symmetry
-subplot(2,3,5); hold on; title('Percentage odd symmetric');
-barh(3,sum(V1.oddsym/numel(V1.oddsym)),'FaceColor',ColorIt('b'));
-barh(2,sum(V2.oddsym/numel(V2.oddsym)),'FaceColor',ColorIt('g'));
-barh(1,sum(MT.oddsym/numel(MT.oddsym)),'FaceColor',ColorIt('r'));
-xlim([0 1])
-axis square; box on;
-
-saveas(gcf,'./plots/AssessFits/Fit_Characteristics.png');
-saveas(gcf,'./plots/AssessFits/Fit_Characteristics.eps','epsc');
-
-%% PLOT EXAMPLE FITS for figure
-
+% PLOT EXAMPLE FITS
+% ----------------------- %
+if exampleFits
 xg1 = [-2 : 0.01 : 2]; %fixed spatial range
 for a = 1:length(areas)
 
@@ -304,30 +397,31 @@ for a = 1:length(areas)
 
     end
 
-    g1 = area.P(n,1) + area.P(n,2)*exp( -(xg1-area.P(n,3)).^2 / (2*area.P(n,4)^2) ) .* cos(2*pi*area.P(n,5)*(xg1-area.P(n,3))+area.P(n,6));
+    g1 = area.P(n,1) + area.P(n,2)*exp( -(xg1-area.P(n,3)).^2 / (2*area.P(n,4)^2) ) .* ...
+                                        cos(2*pi*area.P(n,5)*(xg1-area.P(n,3))+area.P(n,6));
 
-    figure; hold on;
+    f5{a} = figure; hold on;
     scatter(area.experiments{n}.dat(:,1),area.experiments{n}.dat(:,2),'k','filled');
     plot(xg1,g1,'b-','linewidth',2);
     axis square; xticks([]); yticks([]); box on; ylim(yrange); xlim([-2 2]);
-    saveas(gcf,['./plots/AssessFits/ExampleFits/ExampleFit_' areas{a} '_cell' num2str(n) '.png']);
-    saveas(gcf,['./plots/AssessFits/ExampleFits/ExampleFit_' areas{a} '_cell' num2str(n) '.eps'],'epsc');
 
-    figure; hold on;
+    f6{a} = figure; hold on;
     plot(xg1,area.FI(n,:),'k-','linewidth',2);
     axis square; xticks([]); yticks([]); box on;
-    saveas(gcf,['./plots/AssessFits/ExampleFits/ExampleFit_' areas{a} '_cell' num2str(n) '_FI.png']);
-    saveas(gcf,['./plots/AssessFits/ExampleFits/ExampleFit_' areas{a} '_cell' num2str(n) '_FI.eps'],'epsc');
 
 end
+end
 
-%% COMPARE MT params TO GD FITS
 
+% COMPARE MT PARAMS TO ORIGINAL DEANGELIS/UKA '03 FITS
+% ----------------------- %
 % Compare the fits between our routine and the fits from DeAngelis & Uka
 % Even though the fits match visually, there are some differences because
 % - D&U fit to all data and we fit to mean
 % - some parameter combos of Gabors result in very similar fits
-figure; hold on;
+f7 = figure;
+f7.Position = [100 100 1000 700];
+hold on;
 subplot(2,3,1); hold on; title('offset');
 scatter(MT.GD_R0,MT.P(:,1)','k','filled');
 refline(1,0); xlabel('original fit'); ylabel('our fit');
@@ -342,6 +436,7 @@ subplot(2,3,3); hold on; title('envelope mean');
 scatter(MT.GD_d0,MT.P(:,3)','k','filled');
 refline(1,0); xlabel('original fit'); ylabel('our fit');
 axis equal square; box on;
+set(gca,'xlim',[-3 3],'ylim',[-3 3]);
 
 subplot(2,3,4); hold on; title('envelope sigma');
 scatter(MT.GD_sigma,MT.P(:,4)','k','filled');
@@ -357,11 +452,12 @@ subplot(2,3,6); hold on; title('phase');
 scatter(MT.GD_phi,MT.P(:,6)','k','filled');
 refline(1,0); xlabel('original fit'); ylabel('our fit');
 axis equal square; box on;
+set(gca,'xlim',[-pi pi],'ylim',[-pi pi],'xtick',phTix,'xticklabel',phTixLab,'ytick',fTix,'yticklabel',fTixLab);
 
-saveas(gcf,['./plots/AssessFits/Fit_MT_ComparisonToDandU.png']);
 
-if(plotallfits)
-    %% PLOT ALL FITS
+% PLOT ALL FITS
+% ----------------------- %
+if(plotallfits)   
     for a = 1:length(areas)
 
         switch areas{a}
@@ -377,8 +473,6 @@ if(plotallfits)
         pcnt = 1;
         fcnt = 1;
         for n = 1:length(area.experiments)
-
-            
 
             if mod(n,66) == 1
                 if fcnt > 1
@@ -418,11 +512,6 @@ if(plotallfits)
 
             pcnt = pcnt + 1;
 
-%             if abs(area.P(n,6) - pi/2) < .1
-%                 keyboard
-%             end
-
-
         end
         saveas(gcf,['./plots/AssessFits/AllFits/Fit_' areas{a} '_' num2str(fcnt-1) '.png']);
 
@@ -431,5 +520,39 @@ if(plotallfits)
 end
 
 
+%% Save figures
 
+if saveOn
 
+% Save data structures with added information
+save([topDir,'resultsALL_final.mat'],'V1','V2','MT');
+
+% Number of repeats and error in dataset
+saveas(f1,[topDir,'plots/AssessFits/Fit_MeanRepeatsAndError.png']);
+saveas(f1,[topDir,'plots/AssessFits/Fit_MeanRepeatsAndError.eps'],'epsc');
+
+% Fit r2
+saveas(f2,[topDir,'plots/AssessFits/Fit_R2.png']);
+saveas(f2,[topDir,'plots/AssessFits/Fit_R2.eps'],'epsc');
+
+% Parametric fit characteristics
+saveas(f3,[topDir,'plots/AssessFits/Fit_Params.png']);
+saveas(f3,[topDir,'plots/AssessFits/Fit_Params.eps'],'epsc');
+
+% Nonparametric fit characteristics
+saveas(f4,[topDir,'plots/AssessFits/Fit_Characteristics.png']);
+saveas(f4,[topDir,'plots/AssessFits/Fit_Characteristics.eps'],'epsc');
+
+% Example fits from each area
+for a = 1:length(areas)
+    saveas(f5{a},[topDir,'plots/AssessFits/ExampleFits/ExampleFit_' areas{a} '_cell' num2str(n) '.png']);
+    saveas(f5{a},[topDir,'plots/AssessFits/ExampleFits/ExampleFit_' areas{a} '_cell' num2str(n) '.eps'],'epsc');
+
+    saveas(f6{a},[topDir,'plots/AssessFits/ExampleFits/ExampleFit_' areas{a} '_cell' num2str(n) '_FI.png']);
+    saveas(f6{a},[topDir,'plots/AssessFits/ExampleFits/ExampleFit_' areas{a} '_cell' num2str(n) '_FI.eps'],'epsc');
+end
+
+% D&U comparison
+saveas(f7,[topDir,'plots/AssessFits/Fit_MT_ComparisonToDandU.png']);
+
+end

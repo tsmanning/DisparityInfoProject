@@ -1,4 +1,4 @@
-function[params] = fitGeneralizedLaplacian( x, f )
+function[params,minerr] = fitGeneralizedLaplacian( x, f )
     
     minerr = 1e99;
     for p = 0.01 : 0.05 : 5

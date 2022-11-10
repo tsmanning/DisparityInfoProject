@@ -848,9 +848,9 @@ if opt.showMM
                 mdh = myErrorbar(ah,opt.xValues+xOffset,m,sd);
             end
             if opt.showMM == 6
-                mdh(1,:) = plot(ah,squeeze(md(:,1,2:3))',repmat(md(:,1,1)',2,1),'color','r','lineWidth',2);%,'lineStyle','--');
-                mdh(2,:) = plot(ah,squeeze(md(:,2,2:3))',repmat(md(:,2,1)',2,1),'color','r','lineWidth',1);%,'lineStyle','--');
-                mdh(3,:) = plot(ah,squeeze(md(:,3,2:3))',repmat(md(:,3,1)',2,1),'color','r','lineWidth',1);%,'lineStyle','--');
+                mdh(1,:) = plot(ah,squeeze(md(:,1,2:3))',repmat(md(:,1,1)',2,1),'color','w','lineWidth',2);%,'lineStyle','--');
+                mdh(2,:) = plot(ah,squeeze(md(:,2,2:3))',repmat(md(:,2,1)',2,1),'color','w','lineWidth',1);%,'lineStyle','--');
+                mdh(3,:) = plot(ah,squeeze(md(:,3,2:3))',repmat(md(:,3,1)',2,1),'color','w','lineWidth',1);%,'lineStyle','--');
             end
         case 'flipped'
             if any(opt.showMM==[1,2])
@@ -868,9 +868,9 @@ if opt.showMM
                 mdh = myErrorbar(ah,m,opt.xValues+xOffset,[sd,NaN(size(sd))]);
             end
             if opt.showMM == 6
-                mdh(1,:) = plot(ah,repmat(md(:,1,1)',2,1),squeeze(md(:,1,2:3))','color','r','lineWidth',2);%,'lineStyle','--');
-                mdh(2,:) = plot(ah,repmat(md(:,2,1)',2,1),squeeze(md(:,2,2:3))','color','r','lineWidth',1);%,'lineStyle','--');
-                mdh(3,:) = plot(ah,repmat(md(:,3,1)',2,1),squeeze(md(:,3,2:3))','color','r','lineWidth',1);%,'lineStyle','--');
+                mdh(1,:) = plot(ah,repmat(md(:,1,1)',2,1),squeeze(md(:,1,2:3))','color','w','lineWidth',2);%,'lineStyle','--');
+                mdh(2,:) = plot(ah,repmat(md(:,2,1)',2,1),squeeze(md(:,2,2:3))','color','w','lineWidth',1);%,'lineStyle','--');
+                mdh(3,:) = plot(ah,repmat(md(:,3,1)',2,1),squeeze(md(:,3,2:3))','color','w','lineWidth',1);%,'lineStyle','--');
             end
     end
 end

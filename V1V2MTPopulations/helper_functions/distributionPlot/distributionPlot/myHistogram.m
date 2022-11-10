@@ -137,7 +137,7 @@ if factor ~= -1
             % number of bins: divide data range by binLength
             nBins = round((max(data)-min(data))/binLength);
             
-            if ~isfinite(nBins)
+            if ~isfinite(nBins) || nBins>1000
                 nBins = length(unique(data));
             end
             

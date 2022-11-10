@@ -1,7 +1,7 @@
 %% Make kernel-smoothed densities
 
 clear all
-close all
+% close all
 
 % Define dirs
 splPath = regexp(which('makeNeuronalKSD_BORIS'),filesep,'split');
@@ -31,9 +31,10 @@ for f = 1:length(MT.experiments)
     
     % grab that from that row and assign it to this neuron
     % positive x is right in VF, positive y is up in VF
-    MT.x_pos(f)             = T_MT.RF_x(this_row); % note this does not account for vergence, see Jenny's notes
-    MT.y_pos(f)             = T_MT.RF_y(this_row);
-    
+    MT.x_pos(f) = T_MT.RF_x(this_row); % note this does not account for vergence, see Jenny's notes
+    MT.y_pos(f) = T_MT.RF_y(this_row);
+    MTinc(f)    = sqrt(MT.x_pos(f)^2 + MT.y_pos(f)^2);
+
 end
 
 % grab V1 RF location data, much simpler
@@ -42,6 +43,7 @@ for v = 1:length(V1.experiments)
     % positive x is to the animals left in their visual field so we flip to match MT data, positive y is up
     V1.x_pos(v) = -V1.experiments{v}.x_pos;
     V1.y_pos(v) = V1.experiments{v}.y_pos;
+    V1inc(v)    = sqrt(V1.x_pos(v)^2 + V1.y_pos(v)^2);
     
 end
 
@@ -51,8 +53,16 @@ for v = 1:length(V2.experiments)
     % positive x is to the animals left in their visual field so we flip to match MT data, positive y is up
     V2.x_pos(v) = -V2.experiments{v}.x_pos;
     V2.y_pos(v) = V2.experiments{v}.y_pos;
-    
+    V2inc(v)    = sqrt(V2.x_pos(v)^2 + V2.y_pos(v)^2);
+
 end
+
+% MT.x_pos = MT.x_pos(MTinc);
+% MT.y_pos = MT.y_pos(MTinc);
+% V1.x_pos = V1.x_pos(MTinc);
+% V1.y_pos = V1.y_pos(MTinc);
+% V2.x_pos = V2.x_pos(MTinc);
+% V2.y_pos = V2.y_pos(MTinc);
 
 
 %% Make KSD plots from each area
@@ -87,28 +97,34 @@ CircDensity = sqrt(gx.^2 + gy.^2)<=10;
 
 circDensityMat = CircDensity/sum(CircDensity(:));
 
-figure; hold on;
-subplot(2,2,1); hold on; title('V1');
+figure; 
+hold on;
+title('V1');
 imagesc(V1densityMat); axis image off;
 colorbar;
 
-subplot(2,2,2); hold on; title('V2');
+figure; 
+hold on;
+title('V2');
 imagesc(V2densityMat); axis image off;
 colorbar;
 
-subplot(2,2,3); hold on; title('MT');
+figure; 
+hold on;
+title('MT');
 imagesc(MTdensityMat); axis image off;
 colorbar;
 
-subplot(2,2,4); hold on; title('Circ');
+figure; 
+hold on;
+title('Circ');
 imagesc(circDensityMat); axis image off;
 colorbar;
 
-saveas(gcf,[saveDir,'BORIS_densities.png']); 
 
 %% Save these to plug into image stats script
-save([saveDir,'V1densityMat_BORIS.mat'],'V1densityMat','V1');
-save([saveDir,'V2densityMat_BORIS.mat'],'V2densityMat','V2');
-save([saveDir,'MTdensityMat_BORIS.mat'],'MTdensityMat','MT');
-save([saveDir,'circDensityMat_BORIS.mat'],'circDensityMat');
+% save([saveDir,'V1densityMat_BORIS.mat'],'V1densityMat','V1');
+% save([saveDir,'V2densityMat_BORIS.mat'],'V2densityMat','V2');
+% save([saveDir,'MTdensityMat_BORIS.mat'],'MTdensityMat','MT');
+% save([saveDir,'circDensityMat_BORIS.mat'],'circDensityMat');
 
