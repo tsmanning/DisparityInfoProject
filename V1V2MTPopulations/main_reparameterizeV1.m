@@ -193,7 +193,7 @@ for ii = 1:6
     plot( x, glmtF, '--','color',ColorIt('r'),'linewidth',2 );
 
     legend(pl,{'V1','MT'});
-    set(gca,'plotboxaspectratio',[1 1 1],'xlim',[-2 2],'xtick',-2:0.5:2);
+    set(gca,'plotboxaspectratio',[1 1 1],'xlim',[-2 2],'xtick',-2:0.5:2,'fontsize',15);
     xlabel('Disparity');
     ylabel('Normalized Fisher information');
     title(titles{ii});
@@ -230,7 +230,7 @@ for jj = 1:3
 
     plot([0 7],allMT{jj}*[1 1],'--k','linewidth',1.5);
 
-    set(gca,'plotboxaspectratio',[1 1 1],'xlim',[0 7],'xtick',1:6,'xticklabels',titles,'yscale','log');
+    set(gca,'plotboxaspectratio',[1 1 1],'xlim',[0 7],'xtick',1:6,'xticklabels',titles,'yscale','log','fontsize',15);
     xtickangle(45);
     title(statTitles{jj});
 
@@ -251,7 +251,7 @@ for ii = 1:6
 
 end
 
-set(gca,'plotboxaspectratio',[1 1 1],'xlim',[0 7],'xtick',1:6,'xticklabels',titles,'yscale','log');
+set(gca,'plotboxaspectratio',[1 1 1],'xlim',[0 7],'xtick',1:6,'xticklabels',titles,'yscale','log','fontsize',15);
 xtickangle(45);
 ylabel('JSD');
 title('V1-MT Population FI Divergence');
@@ -262,6 +262,8 @@ if ~exist(saveDir)
     mkdir(saveDir)
 end
 
-saveas
+saveas(f1,[saveDir,'reparameterizationBootstraps.svg']);
+saveas(f2,[saveDir,'reparStats.svg']);
+saveas(f3,[saveDir,'reparJSD.svg']);
 
 

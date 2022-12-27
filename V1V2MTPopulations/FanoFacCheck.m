@@ -168,5 +168,5 @@ set(gca,'plotboxaspectratio',[1 1 1],'fontsize',15);
 
 saveas(gcf,'plots/FanoFactor_fits.png')
 saveas(gcf,'plots/FanoFactor_fits.eps','epsc')
-
+saveas(gcf,'plots/FanoFactor_fits.svg')
 
