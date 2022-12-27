@@ -1,16 +1,16 @@
-function [edges_disp,f1,varargout] = getDispStats_KSD_BORIS(imSet,subset,plotOn,resampIter)
+function [edges_disp,f1,varargout] = getDispStats_KSD_BORIS(imSet,subset,resampIter)
 % For image set what are the disparity statistics?
 
 % Where am I?
-splPath  = regexp(which('getDispStats'),filesep,'split');
-rootDir  = [filesep,fullfile(splPath{1:numel(splPath)-1}),filesep];
+splPath  = regexp(which('getDispStats_KSD_BORIS'),filesep,'split');
+rootDir  = [filesep,fullfile(splPath{1:numel(splPath)-2}),filesep];
 imDir    = [rootDir,'NaturalImageDB/BORISimageSet/'];
-statsDir = [rootDir,'5-sceneStatsAnalysis/'];
+statsDir = [rootDir,'SceneStatsAnalysis',filesep,'savedImageStats_BORISdataset'];
+
 
 %% Collect disparities within masks and histogram
 
-res        = 52;
-% res        = 25;
+res = 52;
 
 ub = 2;
 lb = -2;
@@ -29,13 +29,12 @@ switch subset
         lab{2} = 'Lower VF';
 end
 
-pmax = 5;
-
 % Grab kernel-smoothed RF probability densities from datasets
 load([statsDir,'V1densityMat_BORIS.mat'])
 load([statsDir,'V2densityMat_BORIS.mat'])
 load([statsDir,'MTdensityMat_BORIS.mat'])
 load([statsDir,'circDensityMat_BORIS.mat'])
+load([statsDir,'V1V2Rect_BORIS.mat'])
 
 % Grab disparity images from BORIS dataset
 switch imSet
@@ -56,18 +55,20 @@ switch subset
         dispHistV2 = nan(numIms,res-1);
         dispHistMT = nan(numIms,res-1);
         dispHistCirc = nan(numIms,res-1);
-        
+        dispHistV1V2Rect = nan(numIms,res-1);
+
     otherwise
         dispHistV1_m1 = nan(numIms,res-1);
         dispHistV2_m1 = nan(numIms,res-1);
         dispHistMT_m1 = nan(numIms,res-1);
         dispHistCirc_m1 = nan(numIms,res-1);
+        dispHistV1V2Rect_m1 = nan(numIms,res-1);
         
         dispHistV1_m2 = nan(numIms,res-1);
         dispHistV2_m2 = nan(numIms,res-1);
         dispHistMT_m2 = nan(numIms,res-1);
         dispHistCirc_m2 = nan(numIms,res-1);
-        
+        dispHistV1V2Rect_m2 = nan(numIms,res-1);
 end
 
 
@@ -78,8 +79,15 @@ for ii = 1:numIms
     end
     
     % For bootstrapping, select a random image from set
-    imInd = randi(numIms);
-    
+    if resampIter == 0
+        imInd = randi(numIms);
+    elseif ~isempty
+        imInd = resampIter;
+    else
+        imInd = ii;
+    end
+
+
     %% Get image size
     % in BORIS data, the matrix is 10 deg wide and 10 tall; sampled in 207x207
     supp1D = -103:103;
@@ -137,6 +145,9 @@ for ii = 1:numIms
             ySampMT    = nan(numSamps,1);
             xSampCirc  = nan(numSamps,1);
             ySampCirc  = nan(numSamps,1);
+            xSampV1V2Rect = nan(numSamps,1);
+            ySampV1V2Rect = nan(numSamps,1);
+
         otherwise
             xSampV1_m1    = nan(numSamps,1);
             ySampV1_m1    = nan(numSamps,1);
@@ -146,7 +157,9 @@ for ii = 1:numIms
             ySampMT_m1    = nan(numSamps,1);
             xSampCirc_m1  = nan(numSamps,1);
             ySampCirc_m1  = nan(numSamps,1);
-            
+            xSampV1V2Rect_m1 = nan(numSamps,1);
+            ySampV1V2Rect_m1 = nan(numSamps,1);
+
             xSampV1_m2    = nan(numSamps,1);
             ySampV1_m2    = nan(numSamps,1);
             xSampV2_m2    = nan(numSamps,1);
@@ -155,6 +168,8 @@ for ii = 1:numIms
             ySampMT_m2    = nan(numSamps,1);
             xSampCirc_m2  = nan(numSamps,1);
             ySampCirc_m2  = nan(numSamps,1);
+            xSampV1V2Rect_m2 = nan(numSamps,1);
+            ySampV1V2Rect_m2 = nan(numSamps,1);
     end
     
     % First modify KSD mats so we mask out pixels with undefined
@@ -167,18 +182,20 @@ for ii = 1:numIms
             V2densityMatMasked   = V2densityMat.*mask.*undefImMask;
             MTdensityMatMasked   = MTdensityMat.*mask.*undefImMask;
             circDensityMatMasked = circDensityMat.*mask.*undefImMask;
+            V1V2RectMatMasked    = V1V2RectMat.*mask.*undefImMask;
             
         otherwise
             V1densityMatMasked1   = V1densityMat.*mask1.*undefImMask;
             V2densityMatMasked1   = V2densityMat.*mask1.*undefImMask;
             MTdensityMatMasked1   = MTdensityMat.*mask1.*undefImMask;
             circDensityMatMasked1 = circDensityMat.*mask1.*undefImMask;
+            V1V2RectMatMasked1    = V1V2RectMat.*mask1.*undefImMask;
             
             V1densityMatMasked2   = V1densityMat.*mask2.*undefImMask;
             V2densityMatMasked2   = V2densityMat.*mask2.*undefImMask;
             MTdensityMatMasked2   = MTdensityMat.*mask2.*undefImMask;
             circDensityMatMasked2 = circDensityMat.*mask2.*undefImMask;
-            
+            V1V2RectMatMasked2    = V1V2RectMat.*mask2.*undefImMask;
     end
     
     % Sometimes the KSD plots are all zero after masking if some of the
@@ -190,22 +207,26 @@ for ii = 1:numIms
             check(2) = sum(V2densityMatMasked(:));
             check(3) = sum(MTdensityMatMasked(:));
             check(4) = sum(circDensityMatMasked(:));
+            check(5) = sum(V1V2RectMatMasked(:));
             
-            allCheck = sum([check(1) == 0; check(2) == 0; check(3) == 0; check(4) == 0]);
+            allCheck = sum([check(1) == 0; check(2) == 0; check(3) == 0; check(4) == 0;  check(5) == 0]);
             
         otherwise
             check(1) = sum(V1densityMatMasked1(:));
             check(2) = sum(V2densityMatMasked1(:));
             check(3) = sum(MTdensityMatMasked1(:));
             check(4) = sum(circDensityMatMasked1(:));
+            check(5) = sum(V1V2RectMatMasked1(:));
             
-            check(5) = sum(V1densityMatMasked2(:));
-            check(6) = sum(V2densityMatMasked2(:));
-            check(7) = sum(MTdensityMatMasked2(:));
-            check(8) = sum(circDensityMatMasked2(:));
+            check(6) = sum(V1densityMatMasked2(:));
+            check(7) = sum(V2densityMatMasked2(:));
+            check(8) = sum(MTdensityMatMasked2(:));
+            check(9) = sum(circDensityMatMasked2(:));
+            check(10) = sum(V1V2RectMatMasked2(:));
             
             allCheck = sum([check(1) == 0; check(2) == 0; check(3) == 0; check(4) == 0;...
-                            check(5) == 0; check(6) == 0; check(7) == 0; check(8) == 0]);
+                            check(5) == 0; check(6) == 0; check(7) == 0; check(8) == 0;...
+                            check(9) == 0; check(10) == 0]);
     end
     
     if allCheck
@@ -220,16 +241,20 @@ for ii = 1:numIms
                 [ySampV2(jj),xSampV2(jj)]     = pinky(1:imSize,1:imSize,V2densityMatMasked);
                 [ySampMT(jj),xSampMT(jj)]     = pinky(1:imSize,1:imSize,MTdensityMatMasked);
                 [ySampCirc(jj),xSampCirc(jj)] = pinky(1:imSize,1:imSize,circDensityMatMasked);
+                [ySampV1V2Rect(jj),xSampV1V2Rect(jj)]     = pinky(1:imSize,1:imSize,V1V2RectMatMasked);
+
             otherwise
                 [ySampV1_m1(jj),xSampV1_m1(jj)]     = pinky(1:imSize,1:imSize,V1densityMatMasked1);
                 [ySampV2_m1(jj),xSampV2_m1(jj)]     = pinky(1:imSize,1:imSize,V2densityMatMasked1);
                 [ySampMT_m1(jj),xSampMT_m1(jj)]     = pinky(1:imSize,1:imSize,MTdensityMatMasked1);
                 [ySampCirc_m1(jj),xSampCirc_m1(jj)] = pinky(1:imSize,1:imSize,circDensityMatMasked1);
+                [ySampV1V2Rect_m1(jj),xSampV1V2Rect_m1(jj)]     = pinky(1:imSize,1:imSize,V1V2RectMatMasked1);
                 
                 [ySampV1_m2(jj),xSampV1_m2(jj)]     = pinky(1:imSize,1:imSize,V1densityMatMasked2);
                 [ySampV2_m2(jj),xSampV2_m2(jj)]     = pinky(1:imSize,1:imSize,V2densityMatMasked2);
                 [ySampMT_m2(jj),xSampMT_m2(jj)]     = pinky(1:imSize,1:imSize,MTdensityMatMasked2);
                 [ySampCirc_m2(jj),xSampCirc_m2(jj)] = pinky(1:imSize,1:imSize,circDensityMatMasked2);
+                [ySampV1V2Rect_m2(jj),xSampV1V2Rect_m2(jj)]     = pinky(1:imSize,1:imSize,V1V2RectMatMasked2);
         end
         
     end
@@ -241,17 +266,19 @@ for ii = 1:numIms
             sampIndV2   = sub2ind([size(dispCrop,1) size(dispCrop,2)],xSampV2,ySampV2);
             sampIndMT   = sub2ind([size(dispCrop,1) size(dispCrop,2)],xSampMT,ySampMT);
             sampIndCirc = sub2ind([size(dispCrop,1) size(dispCrop,2)],xSampCirc,ySampCirc);
+            sampIndV1V2Rect   = sub2ind([size(dispCrop,1) size(dispCrop,2)],xSampV1V2Rect,ySampV1V2Rect);
         otherwise
             sampIndV1_m1   = sub2ind([size(dispCrop,1) size(dispCrop,2)],xSampV1_m1,ySampV1_m1);
             sampIndV2_m1   = sub2ind([size(dispCrop,1) size(dispCrop,2)],xSampV2_m1,ySampV2_m1);
             sampIndMT_m1   = sub2ind([size(dispCrop,1) size(dispCrop,2)],xSampMT_m1,ySampMT_m1);
             sampIndCirc_m1 = sub2ind([size(dispCrop,1) size(dispCrop,2)],xSampCirc_m1,ySampCirc_m1);
-            
+            sampIndV1V2Rect_m1   = sub2ind([size(dispCrop,1) size(dispCrop,2)],xSampV1V2Rect_m1,ySampV1V2Rect_m1);
+
             sampIndV1_m2   = sub2ind([size(dispCrop,1) size(dispCrop,2)],xSampV1_m2,ySampV1_m2);
             sampIndV2_m2   = sub2ind([size(dispCrop,1) size(dispCrop,2)],xSampV2_m2,ySampV2_m2);
             sampIndMT_m2   = sub2ind([size(dispCrop,1) size(dispCrop,2)],xSampMT_m2,ySampMT_m2);
             sampIndCirc_m2 = sub2ind([size(dispCrop,1) size(dispCrop,2)],xSampCirc_m2,ySampCirc_m2);
-            
+            sampIndV1V2Rect_m2   = sub2ind([size(dispCrop,1) size(dispCrop,2)],xSampV1V2Rect_m2,ySampV1V2Rect_m2);
     end
     
     % Select disparities using these indices
@@ -261,16 +288,19 @@ for ii = 1:numIms
             dispResampV2   = dispCrop(sampIndV2);
             dispResampMT   = dispCrop(sampIndMT);
             dispResampCirc = dispCrop(sampIndCirc);
+            dispResampV1V2Rect   = dispCrop(sampIndV1V2Rect);
         otherwise
             dispResampV1_m1   = dispCrop(sampIndV1_m1);
             dispResampV2_m1   = dispCrop(sampIndV2_m1);
             dispResampMT_m1   = dispCrop(sampIndMT_m1);
             dispResampCirc_m1 = dispCrop(sampIndCirc_m1);
+            dispResampV1V2Rect_m1   = dispCrop(sampIndV1V2Rect_m1);
             
             dispResampV1_m2   = dispCrop(sampIndV1_m2);
             dispResampV2_m2   = dispCrop(sampIndV2_m2);
             dispResampMT_m2   = dispCrop(sampIndMT_m2);
             dispResampCirc_m2 = dispCrop(sampIndCirc_m2);
+            dispResampV1V2Rect_m2   = dispCrop(sampIndV1V2Rect_m2);
     end
     
     % Calculate final histograms
@@ -280,22 +310,22 @@ for ii = 1:numIms
             dispHistV2(ii,:)   = histcounts(dispResampV2,edges_disp);
             dispHistMT(ii,:)   = histcounts(dispResampMT,edges_disp);
             dispHistCirc(ii,:) = histcounts(dispResampCirc,edges_disp);
+            dispHistV1V2Rect(ii,:) = histcounts(dispResampV1V2Rect,edges_disp);
         otherwise
             dispHistV1_m1(ii,:)   = histcounts(dispResampV1_m1,edges_disp);
             dispHistV2_m1(ii,:)   = histcounts(dispResampV2_m1,edges_disp);
             dispHistMT_m1(ii,:)   = histcounts(dispResampMT_m1,edges_disp);
             dispHistCirc_m1(ii,:) = histcounts(dispResampCirc_m1,edges_disp);
+            dispHistV1V2Rect_m1(ii,:) = histcounts(dispResampV1V2Rect_m1,edges_disp);
             
             dispHistV1_m2(ii,:)   = histcounts(dispResampV1_m2,edges_disp);
             dispHistV2_m2(ii,:)   = histcounts(dispResampV2_m2,edges_disp);
             dispHistMT_m2(ii,:)   = histcounts(dispResampMT_m2,edges_disp);
             dispHistCirc_m2(ii,:) = histcounts(dispResampCirc_m2,edges_disp);
+            dispHistV1V2Rect_m2(ii,:) = histcounts(dispResampV1V2Rect_m2,edges_disp);
     end
     
 end
-
-
-%% Plotting
 
 
 % Collapse across images
@@ -305,16 +335,19 @@ switch subset
         dispHistV2   = sum(dispHistV2,1,'omitnan');
         dispHistMT   = sum(dispHistMT,1,'omitnan');
         dispHistCirc = sum(dispHistCirc,1,'omitnan');
+        dispHistV1V2Rect   = sum(dispHistV1V2Rect,1,'omitnan');
     otherwise
         dispHistV1_m1   = sum(dispHistV1_m1,1,'omitnan');
         dispHistV2_m1   = sum(dispHistV2_m1,1,'omitnan');
         dispHistMT_m1   = sum(dispHistMT_m1,1,'omitnan');
         dispHistCirc_m1 = sum(dispHistCirc_m1,1,'omitnan');
+        dispHistV1V2Rect_m1   = sum(dispHistV1V2Rect_m1,1,'omitnan');
         
         dispHistV1_m2   = sum(dispHistV1_m2,1,'omitnan');
         dispHistV2_m2   = sum(dispHistV2_m2,1,'omitnan');
         dispHistMT_m2   = sum(dispHistMT_m2,1,'omitnan');
         dispHistCirc_m2 = sum(dispHistCirc_m2,1,'omitnan');
+        dispHistV1V2Rect_m2   = sum(dispHistV1V2Rect_m2,1,'omitnan');
 end
 
 % Normalize to get PDF
@@ -324,141 +357,19 @@ switch subset
         dispHistV2   = dispHistV2/(sum(dispHistV2)*diff(edges_disp(1:2)));
         dispHistMT   = dispHistMT/(sum(dispHistMT)*diff(edges_disp(1:2)));
         dispHistCirc = dispHistCirc/(sum(dispHistCirc)*diff(edges_disp(1:2)));
+        dispHistV1V2Rect   = dispHistV1V2Rect/(sum(dispHistV1V2Rect)*diff(edges_disp(1:2)));
     otherwise
         dispHistV1_m1   = dispHistV1_m1/(sum(dispHistV1_m1)*diff(edges_disp(1:2)));
         dispHistV2_m1   = dispHistV2_m1/(sum(dispHistV2_m1)*diff(edges_disp(1:2)));
         dispHistMT_m1   = dispHistMT_m1/(sum(dispHistMT_m1)*diff(edges_disp(1:2)));
         dispHistCirc_m1 = dispHistCirc_m1/(sum(dispHistCirc_m1)*diff(edges_disp(1:2)));
+        dispHistV1V2Rect_m1   = dispHistV1V2Rect_m1/(sum(dispHistV1V2Rect_m1)*diff(edges_disp(1:2)));
         
         dispHistV1_m2   = dispHistV1_m2/(sum(dispHistV1_m2)*diff(edges_disp(1:2)));
         dispHistV2_m2   = dispHistV2_m2/(sum(dispHistV2_m2)*diff(edges_disp(1:2)));
         dispHistMT_m2   = dispHistMT_m2/(sum(dispHistMT_m2)*diff(edges_disp(1:2)));
         dispHistCirc_m2 = dispHistCirc_m2/(sum(dispHistCirc_m2)*diff(edges_disp(1:2)));
-end
-
-if plotOn
-% Colors to use in plotting
-colorMat = colororder;  
-
-switch subset
-    case 'ecc'
-        colors = [3 4];
-        labels = {['Central VF (<',num2str(round(medEcc)),'\circ)'],...
-                  ['Peripheral VF (>',num2str(round(medEcc)),'\circ)']};
-        
-    case 'vertPos'
-        colors = [5 6];
-        labels = {'Upper VF','Lower VF'};
-        
-    case 'figure'
-        colors = [1 2];
-        labels = {'Figure','Ground'};    
-        
-end
-    
-f1 = figure;
-f1.Position = [300 300 720 770];
-hold on;
-
-switch subset
-    case 'all' 
-        % V1-based KSD sampling
-        f2 = figure;
-        f2.Position = [100 100 720 770];
-        plot([0 0],[0 pmax],'--k','linewidth',2);
-        p2 = plot(cntr_disp,dispHistV1,'color',[0 0 0],'linewidth',4);
-        title('Disparity probability');
-        set(gca,'fontsize',20,'xlim',[lb ub],'ylim',[0 pmax],'plotboxaspectratio',[1 1 1]);
-        xlabel('Horizontal disparity (\circ)');
-        ylabel('Probability density');
-        legend([p2],'V1','location','northeast');
-        
-        % V2-based KSD sampling
-        f3 = figure;
-        f3.Position = [700 100 720 770];
-        plot([0 0],[0 pmax],'--k','linewidth',2);
-        p3 = plot(cntr_disp,dispHistV2,'color',[0 0 0],'linewidth',4);
-        title('Disparity probability');
-        set(gca,'fontsize',20,'xlim',[lb ub],'ylim',[0 pmax],'plotboxaspectratio',[1 1 1]);
-        xlabel('Horizontal disparity (\circ)');
-        ylabel('Probability density');
-        legend([p3],'V2','location','northeast');
-        
-        % MT-based KSD sampling
-        f4 = figure;
-        f4.Position = [700 700 720 770];
-        plot([0 0],[0 pmax],'--k','linewidth',2);
-        p4 = plot(cntr_disp,dispHistMT,'color',[0 0 0],'linewidth',4);
-        title('Disparity probability');
-        set(gca,'fontsize',20,'xlim',[lb ub],'ylim',[0 pmax],'plotboxaspectratio',[1 1 1]);
-        xlabel('Horizontal disparity (\circ)');
-        ylabel('Probability density');
-        legend([p4],'MT','location','northeast');
-        
-        % Circ-based KSD sampling
-        f4 = figure;
-        f4.Position = [700 700 720 770];
-        plot([0 0],[0 pmax],'--k','linewidth',2);
-        p4 = plot(cntr_disp,dispHistCirc,'color',[0 0 0],'linewidth',4);
-        title('Disparity probability');
-        set(gca,'fontsize',20,'xlim',[lb ub],'ylim',[0 pmax],'plotboxaspectratio',[1 1 1]);
-        xlabel('Horizontal disparity (\circ)');
-        ylabel('Probability density');
-        legend([p4],'Cent 10\circ','location','northeast');
-        
-    otherwise
-        % V1-based KSD sampling
-        f2 = figure;
-        f2.Position = [100 100 720 770];
-        hold on
-        plot([0 0],[0 pmax],'--k','linewidth',2);
-        p1 = plot(cntr_disp,dispHistV1_m1,'color',[0 0 0],'linewidth',4);
-        p1b = plot(cntr_disp,dispHistV1_m2,'color',[0 0 0],'linewidth',4,'linestyle','--');
-        title('Disparity probability');
-        set(gca,'fontsize',20,'xlim',[lb ub],'ylim',[0 pmax],'plotboxaspectratio',[1 1 1]);
-        xlabel('Horizontal disparity (\circ)');
-        ylabel('Probability density');
-        legend([p1,p1b],{['V1 - ',lab{1}],['V1 - ',lab{2}]},'location','northeast');
-        
-        % V2-based KSD sampling
-        f3 = figure;
-        f3.Position = [700 100 720 770];
-        hold on
-        plot([0 0],[0 pmax],'--k','linewidth',2);
-        p2 = plot(cntr_disp,dispHistV2_m1,'color',[0 0 0],'linewidth',4);
-        p2b = plot(cntr_disp,dispHistV2_m2,'color',[0 0 0],'linewidth',4,'linestyle','--');
-        title('Disparity probability');
-        set(gca,'fontsize',20,'xlim',[lb ub],'ylim',[0 pmax],'plotboxaspectratio',[1 1 1]);
-        xlabel('Horizontal disparity (\circ)');
-        ylabel('Probability density');
-        legend([p2,p2b],{['V2 - ',lab{1}],['V2 - ',lab{2}]},'location','northeast');
-        
-        % MT-based KSD sampling
-        f4 = figure;
-        f4.Position = [700 700 720 770];
-        hold on
-        plot([0 0],[0 pmax],'--k','linewidth',2);
-        p3 = plot(cntr_disp,dispHistMT_m1,'color',[0 0 0],'linewidth',4);
-        p3b = plot(cntr_disp,dispHistMT_m2,'color',[0 0 0],'linewidth',4,'linestyle','--');
-        title('Disparity probability');
-        set(gca,'fontsize',20,'xlim',[lb ub],'ylim',[0 pmax],'plotboxaspectratio',[1 1 1]);
-        xlabel('Horizontal disparity (\circ)');
-        ylabel('Probability density');
-        legend([p3,p3b],{['MT - ',lab{1}],['MT - ',lab{2}]},'location','northeast');
-        
-        % Circ-based KSD sampling
-        f4 = figure;
-        f4.Position = [700 700 720 770];
-        hold on
-        plot([0 0],[0 pmax],'--k','linewidth',2);
-        p4 = plot(cntr_disp,dispHistCirc_m1,'color',[0 0 0],'linewidth',4);
-        p4b = plot(cntr_disp,dispHistCirc_m2,'color',[0 0 0],'linewidth',4,'linestyle','--');
-        title('Disparity probability');
-        set(gca,'fontsize',20,'xlim',[lb ub],'ylim',[0 pmax],'plotboxaspectratio',[1 1 1]);
-        xlabel('Horizontal disparity (\circ)');
-        ylabel('Probability density');
-        legend([p4,p4b],{['Cent 10\circ - ',lab{1}],['Cent 10\circ - ',lab{2}]},'location','northeast');
-end
+        dispHistV1V2Rect_m2   = dispHistV1V2Rect_m2/(sum(dispHistV1V2Rect_m2)*diff(edges_disp(1:2)));
 end
 
 % Define output arguments
@@ -468,22 +379,24 @@ switch subset
         varargout{2} = dispHistV2;
         varargout{3} = dispHistMT;
         varargout{4} = dispHistCirc;
+        varargout{5} = dispHistV1V2Rect;
         
     otherwise
         varargout{1} = dispHistV1_m1;
         varargout{2} = dispHistV2_m1;
         varargout{3} = dispHistMT_m1;
         varargout{4} = dispHistCirc_m1;
+        varargout{5} = dispHistV1V2Rect_m1;
         
-        varargout{5} = dispHistV1_m2;
-        varargout{6} = dispHistV2_m2;
-        varargout{7} = dispHistMT_m2;
-        varargout{8} = dispHistCirc_m2;
-        
+        varargout{6} = dispHistV1_m2;
+        varargout{7} = dispHistV2_m2;
+        varargout{8} = dispHistMT_m2;
+        varargout{9} = dispHistCirc_m2;
+        varargout{10} = dispHistV1V2Rect_m2;
 end
 
 %% Save
-if nargin > 3
+if resampIter ~= 0
     suffix = num2str(resampIter);
 else
     suffix = '';
@@ -500,16 +413,19 @@ switch subset
         save([statsDir,'borisStats/dispHistV2_',imSet,suffix],'dispHistV2');
         save([statsDir,'borisStats/dispHistMT_',imSet,suffix],'dispHistMT');
         save([statsDir,'borisStats/dispHistCirc_',imSet,suffix],'dispHistCirc');
+        save([statsDir,'borisStats/dispHistV1V2Rect_',imSet,suffix],'dispHistV1V2Rect');
     otherwise
         save([statsDir,'borisStats/dispHistV1_',lab{1},'_',imSet,suffix],'dispHistV1_m1');
         save([statsDir,'borisStats/dispHistV2_',lab{1},'_',imSet,suffix],'dispHistV2_m1');
         save([statsDir,'borisStats/dispHistMT_',lab{1},'_',imSet,suffix],'dispHistMT_m1');
         save([statsDir,'borisStats/dispHistCirc_',lab{1},'_',imSet,suffix],'dispHistCirc_m1');
+        save([statsDir,'borisStats/dispHistV1V2Rect_',lab{1},'_',imSet,suffix],'dispHistV1V2Rect_m1');
         
         save([statsDir,'borisStats/dispHistV1_',lab{2},'_',imSet,suffix],'dispHistV1_m2');
         save([statsDir,'borisStats/dispHistV2_',lab{2},'_',imSet,suffix],'dispHistV2_m2');
         save([statsDir,'borisStats/dispHistMT_',lab{2},'_',imSet,suffix],'dispHistMT_m2');
         save([statsDir,'borisStats/dispHistCirc_',lab{2},'_',imSet,suffix],'dispHistCirc_m2');
+        save([statsDir,'borisStats/dispHistV1V2Rect_',lab{2},'_',imSet,suffix],'dispHistV1V2Rect_m2');
 end
 
 end

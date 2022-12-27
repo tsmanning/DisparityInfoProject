@@ -3,6 +3,8 @@
 clear all 
 close all
 
+saveOn = 1;
+
 % Load in KSDs
 splPath = regexp(which('KSDplots'),filesep,'split');
 ksdDir  = [filesep,fullfile(splPath{1:numel(splPath)-2}),filesep,'SceneStatsAnalysis/savedKSDmatFiles_BORISdataset/'];
@@ -106,11 +108,11 @@ clim([0 0.06]);
 colormap(cmap);
 
 % Save
-saveas(f1,[saveDir,'V1_KSD.svg']);
-saveas(f2,[saveDir,'V2_KSD.svg']);
-saveas(f3,[saveDir,'MT_KSD.svg']);
-saveas(f4,[saveDir,'MTrestricted_KSD.svg']);
-
-
+if saveOn
+    saveas(f1,[saveDir,'V1_KSD.svg']);
+    saveas(f2,[saveDir,'V2_KSD.svg']);
+    saveas(f3,[saveDir,'MT_KSD.svg']);
+    saveas(f4,[saveDir,'MTrestricted_KSD.svg']);
+end
 
 
