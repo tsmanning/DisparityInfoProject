@@ -4,7 +4,7 @@ D = dir( 'dataMT/DispTunRaw*.mat' );
 experiments = {}; % initialize
 
 % load meta-data to grab RF eccentricities
-T_MT = readtable('dataMT/metadataMT.xlsx');
+T_MT = readtable('metadataMT.xlsx');
 
 cnt = 1;
 

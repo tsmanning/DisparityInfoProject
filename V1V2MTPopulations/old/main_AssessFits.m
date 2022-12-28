@@ -1,4 +1,4 @@
-function [] = main_AssessFits(doAllSubsampling,subsampleFlags)
+
 % Summarize results of fitting cell populations with Gabors
 
 clear all; 
@@ -14,13 +14,14 @@ plotallfits = 0;
 exampleFits = 0;
 saveOn      = 1;
 
-if doAllSubsampling
-    % Skip the subsampling below and let subsampleCells.m take care of it
-    subsample = 'all';
-else
-    subsample = subsampleFlags.subsample;
-    direc     = subsampleFlags.direc;
-end
+subsample = 'all';
+% subsample = 'eccentricity';
+% subsample = 'fitQuality';
+
+% direc  = 'gt';
+direc  = 'lt';
+
+doAllSubsampling = 1;
 
 
 %% Load fitting results
@@ -621,7 +622,5 @@ saveas(f4b,[topDir,'plots/AssessFits/Fit_Characteristics_b.svg']);
 
 % % D&U comparison
 % saveas(f7,[topDir,'plots/AssessFits/Fit_MT_ComparisonToDandU.png']);
-
-end
 
 end

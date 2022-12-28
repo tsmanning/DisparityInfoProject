@@ -1,4 +1,7 @@
-./old
+./sceneStatsAnalysis/old
+./sceneStatsAnalysis/sharedTools/unused
+./V1V2MTPopulations/old
+./V1V2MTPopulations/screen_disparity_correction/old
 *.fig
 *.eps
 *.mat

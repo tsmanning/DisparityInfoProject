@@ -261,8 +261,8 @@ box on;
 
 
 %---------------------------------------------------------%
-% Plot a histogram of the best fit powers, fit a Gaussian to error distribution,
-% then determine power CIs based on that Gaussian
+% PLot a histogram of the best fit powers, fit a Gaussian to that
+% histogram, then determine power CIs based on that Gaussian
 for t = 1:2
     
     task = tasks{t};
