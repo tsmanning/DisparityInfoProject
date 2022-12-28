@@ -3,22 +3,35 @@
 clear all 
 close all
 
-%% Load in KSDs'allUCI'
-ksdDir = ['/home/tyler/Documents/MATLAB/cooperLab/2-Modeling_Simulations/disparityMTModel/',...
-          '5-sceneStatsAnalysis/'];
-realDatDir = [ksdDir,'imgStats/'];
-datDir = [ksdDir,'borisStats/'];
+%% Load in KSDs
 
+% Define directory structure
+splPath = regexp(which('dispDistsPlots'),filesep,'split');
+rootDir = [filesep,fullfile(splPath{1:numel(splPath)-1}),filesep];
+datDir  = [rootDir,'savedImageStats_BORISdataset',filesep];
+figDir  = [rootDir,'plots',filesep];
+
+addpath([rootDir,'sharedTools']);
+
+% Load in disparity histograms based on each KSD
+load([datDir,'dispHistStruct.mat']);
+
+% Define stats subsets
 imgSet      = {'sando','walking'};
-% imRegion    = {'Upper VF_','Lower VF_','Central_','Peripheral_',''};
 imRegionF   = {'UpperVF','LowerVF','Central','Peripheral','all'};
+region      = {'Circ','V1','V2','MT','V1V2Rect'};
+
+% Unused VF breakdowns
+% imRegion    = {'Upper VF_','Lower VF_','Central_','Peripheral_',''};
 % imRegionLCI = {'UpperVFLCI','LowerVFLCI','CentralLCI','PeripheralLCI','allLCI'};
 % imRegionUCI = {'UpperVFUCI','LowerVFUCI','CentralUCI','PeripheralUCI','allUCI'};
-region      = {'Circ','V1','V2','MT','V1V2Rect'};
 % suff        = {'_m1','_m2','_m2','_m1',''};
 
+% Toggle saving figures on/off
+saveOn = 0;
 
-%% Plot
+
+%% Plot disparity distributions and CIs
 res = 52;
 ub  = 2;
 lb  = -2;
@@ -26,168 +39,94 @@ lb  = -2;
 edgesDisp = linspace(lb,ub,res);
 cntrDisp  = edgesDisp(1:end-1) + diff(edgesDisp(1:2))/2;
 
-% Main figs
-ii = 1;
+% Define some more pleasant colors
+blueCI  = ColorIt('b');
+greenCI = ColorIt('g');
+redCI   = ColorIt('r');
 
-% Sando
-thisCirc   = load([realDatDir,'dispHist',region{1},'_','',imgSet{ii}]);
-circDat    = thisCirc.(['dispHistCirc','']);
-thisV1     = load([realDatDir,'dispHist',region{2},'_','',imgSet{ii}]);
-v1Dat      = thisV1.(['dispHistV1','']);
-thisV2     = load([realDatDir,'dispHist',region{3},'_','',imgSet{ii}]);
-v2Dat      = thisV2.(['dispHistV2','']);
-thisMT     = load([realDatDir,'dispHist',region{4},'_','',imgSet{ii}]);
-MTDat      = thisMT.(['dispHistMT','']);
-thisMTrest = load([realDatDir,'dispHist',region{5},'_','',imgSet{ii}]);
-MTDatrest  = thisMTrest.(['dispHistV1V2Rect','']);
+fCount = 1;
+f = cell(4,1);
 
-load([datDir,'dispHistStruct.mat']);
+% Loop over behavioral image sets
+for ii = 1:2
 
-f1 = figure;
-f1.Position = [100 100 650 600];
-hold on;
+    % Plot stats using full MT dataset
+    f{fCount} = figure;
+    f{fCount}.Position = [100 700 650 600];
+    hold on;
 
-plot([0 0],[0 5],'--k','linewidth',2);
+    plot([0 0],[0 5],'--k','linewidth',2);
 
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{1}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{1}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{1}).('allUCI')(1)],'k','edgecolor','none','facealpha',0.5);
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{2}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{2}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{2}).('allUCI')(1)],'b','edgecolor','none','facealpha',0.5);
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{3}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{3}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{3}).('allUCI')(1)],'g','edgecolor','none','facealpha',0.5);
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{4}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{4}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{4}).('allUCI')(1)],'r','edgecolor','none','facealpha',0.5);
+    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
+        [dispDat.(imgSet{ii}).(region{1}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{1}).('allLCI'))...
+        dispDat.(imgSet{ii}).(region{1}).('allUCI')(1)],'k','edgecolor','none','facealpha',0.5);
+    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
+        [dispDat.(imgSet{ii}).(region{2}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{2}).('allLCI'))...
+        dispDat.(imgSet{ii}).(region{2}).('allUCI')(1)],blueCI,'edgecolor','none','facealpha',0.5);
+    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
+        [dispDat.(imgSet{ii}).(region{3}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{3}).('allLCI'))...
+        dispDat.(imgSet{ii}).(region{3}).('allUCI')(1)],greenCI,'edgecolor','none','facealpha',0.5);
+    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
+        [dispDat.(imgSet{ii}).(region{4}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{4}).('allLCI'))...
+        dispDat.(imgSet{ii}).(region{4}).('allUCI')(1)],redCI,'edgecolor','none','facealpha',0.5);
 
-p(1) = plot(cntrDisp,circDat,'color',[0 0 0],'linewidth',2);
-p(2) = plot(cntrDisp,v1Dat,'color',[0 0 1],'linewidth',2);
-p(3) = plot(cntrDisp,v2Dat,'color',[0 1 0],'linewidth',2);
-p(4) = plot(cntrDisp,MTDat,'color',[1 0 0],'linewidth',2);
+    p(1) = plot(cntrDisp,realDat.(imgSet{ii}).(region{1}).('all'),'color',[0 0 0],'linewidth',2);
+    p(2) = plot(cntrDisp,realDat.(imgSet{ii}).(region{2}).('all'),'color',blueCI,'linewidth',2);
+    p(3) = plot(cntrDisp,realDat.(imgSet{ii}).(region{3}).('all'),'color',greenCI,'linewidth',2);
+    p(4) = plot(cntrDisp,realDat.(imgSet{ii}).(region{4}).('all'),'color',redCI,'linewidth',2);
 
-set(gca,'fontsize',20,'plotboxaspectratio',[1 1 1]);
-legend(p,{'Cent 10\circ','V1','V2','MT'});
-xlabel('Horizontal disparity (\circ)');
-ylabel('Probability density');
-title([imgSet{ii}]);
+    set(gca,'fontsize',20,'plotboxaspectratio',[1 1 1]);
+    legend(p,{'Cent 10\circ','V1','V2','MT'});
+    xlabel('Horizontal disparity (\circ)');
+    ylabel('Probability density');
+    title([imgSet{ii}]);
 
-load([datDir,'dispHistStructCntl.mat']);
+    fCount = fCount + 1;
 
-f2 = figure;
-f2.Position = [700 100 650 600];
-hold on;
+    % Plot stats using subsampled MT dataset restricted to V1/V2 bounds
+    f{fCount} = figure;
+    f{fCount}.Position = [700 700 650 600];
+    hold on;
 
-plot([0 0],[0 5],'--k','linewidth',2);
+    plot([0 0],[0 5],'--k','linewidth',2);
 
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{1}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{1}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{1}).('allUCI')(1)],'k','edgecolor','none','facealpha',0.5);
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{2}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{2}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{2}).('allUCI')(1)],'b','edgecolor','none','facealpha',0.5);
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{3}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{3}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{3}).('allUCI')(1)],'g','edgecolor','none','facealpha',0.5);
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{5}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{5}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{5}).('allUCI')(1)],'r','edgecolor','none','facealpha',0.5);
+    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
+        [dispDat.(imgSet{ii}).(region{1}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{1}).('allLCI'))...
+        dispDat.(imgSet{ii}).(region{1}).('allUCI')(1)],'k','edgecolor','none','facealpha',0.5);
+    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
+        [dispDat.(imgSet{ii}).(region{2}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{2}).('allLCI'))...
+        dispDat.(imgSet{ii}).(region{2}).('allUCI')(1)],'b','edgecolor','none','facealpha',0.5);
+    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
+        [dispDat.(imgSet{ii}).(region{3}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{3}).('allLCI'))...
+        dispDat.(imgSet{ii}).(region{3}).('allUCI')(1)],'g','edgecolor','none','facealpha',0.5);
+    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
+        [dispDat.(imgSet{ii}).(region{5}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{5}).('allLCI'))...
+        dispDat.(imgSet{ii}).(region{5}).('allUCI')(1)],'r','edgecolor','none','facealpha',1);
 
-p(1) = plot(cntrDisp,circDat,'color',[0 0 0],'linewidth',2);
-p(2) = plot(cntrDisp,v1Dat,'color',[0 0 1],'linewidth',2);
-p(3) = plot(cntrDisp,v2Dat,'color',[0 1 0],'linewidth',2);
-p(4) = plot(cntrDisp,MTDatrest,'color',[1 0 0],'linewidth',2);
+    p(1) = plot(cntrDisp,realDat.(imgSet{ii}).(region{1}).('all'),'color',[0 0 0],'linewidth',2);
+    p(2) = plot(cntrDisp,realDat.(imgSet{ii}).(region{2}).('all'),'color',blueCI,'linewidth',2);
+    p(3) = plot(cntrDisp,realDat.(imgSet{ii}).(region{3}).('all'),'color',greenCI,'linewidth',2);
+    p(4) = plot(cntrDisp,realDat.(imgSet{ii}).(region{5}).('all'),'color',redCI,'linewidth',2);
 
-set(gca,'fontsize',20,'plotboxaspectratio',[1 1 1]);
-legend(p,{'Cent 10\circ','V1','V2','MT (restricted)'});
-xlabel('Horizontal disparity (\circ)');
-ylabel('Probability density');
-title([imgSet{ii}]);
+    set(gca,'fontsize',20,'plotboxaspectratio',[1 1 1]);
+    legend(p,{'Cent 10\circ','V1','V2','MT (restricted)'});
+    xlabel('Horizontal disparity (\circ)');
+    ylabel('Probability density');
+    title([imgSet{ii}]);
 
-saveas(f1,[ksdDir,'2022_sceneStatsCode_Tyler/sando.svg']);
-saveas(f2,[ksdDir,'2022_sceneStatsCode_Tyler/sandoCntl.svg']);
+    fCount = fCount + 1;
 
-if 1
-% Walking
-ii = 2;
-
-thisCirc   = load([realDatDir,'dispHist',region{1},'_','',imgSet{ii}]);
-circDat    = thisCirc.(['dispHistCirc','']);
-thisV1     = load([realDatDir,'dispHist',region{2},'_','',imgSet{ii}]);
-v1Dat      = thisV1.(['dispHistV1','']);
-thisV2     = load([realDatDir,'dispHist',region{3},'_','',imgSet{ii}]);
-v2Dat      = thisV2.(['dispHistV2','']);
-thisMT     = load([realDatDir,'dispHist',region{4},'_','',imgSet{ii}]);
-MTDat      = thisMT.(['dispHistMT','']);
-thisMTrest = load([realDatDir,'dispHist',region{5},'_','',imgSet{ii}]);
-MTDatrest  = thisMTrest.(['dispHistV1V2Rect','']);
-
-load([datDir,'dispHistStruct.mat']);
-
-f3 = figure;
-f3.Position = [100 700 650 600];
-hold on;
-
-plot([0 0],[0 5],'--k','linewidth',2);
-
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{1}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{1}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{1}).('allUCI')(1)],'k','edgecolor','none','facealpha',0.5);
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{2}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{2}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{2}).('allUCI')(1)],'b','edgecolor','none','facealpha',0.5);
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{3}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{3}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{3}).('allUCI')(1)],'g','edgecolor','none','facealpha',0.5);
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{4}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{4}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{4}).('allUCI')(1)],'r','edgecolor','none','facealpha',0.5);
-
-p(1) = plot(cntrDisp,circDat,'color',[0 0 0],'linewidth',2);
-p(2) = plot(cntrDisp,v1Dat,'color',[0 0 1],'linewidth',2);
-p(3) = plot(cntrDisp,v2Dat,'color',[0 1 0],'linewidth',2);
-p(4) = plot(cntrDisp,MTDat,'color',[1 0 0],'linewidth',2);
-
-set(gca,'fontsize',20,'plotboxaspectratio',[1 1 1]);
-legend(p,{'Cent 10\circ','V1','V2','MT'});
-xlabel('Horizontal disparity (\circ)');
-ylabel('Probability density');
-title([imgSet{ii}]);
-
-load([datDir,'dispHistStructCntl.mat']);
-
-f4 = figure;
-f4.Position = [700 700 650 600];
-hold on;
-
-plot([0 0],[0 5],'--k','linewidth',2);
-
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{1}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{1}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{1}).('allUCI')(1)],'k','edgecolor','none','facealpha',0.5);
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{2}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{2}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{2}).('allUCI')(1)],'b','edgecolor','none','facealpha',0.5);
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{3}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{3}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{3}).('allUCI')(1)],'g','edgecolor','none','facealpha',0.5);
-fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-     [dispDat.(imgSet{ii}).(region{5}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{5}).('allLCI'))...
-      dispDat.(imgSet{ii}).(region{5}).('allUCI')(1)],'r','edgecolor','none','facealpha',1);
-
-p(1) = plot(cntrDisp,circDat,'color',[0 0 0],'linewidth',2);
-p(2) = plot(cntrDisp,v1Dat,'color',[0 0 1],'linewidth',2);
-p(3) = plot(cntrDisp,v2Dat,'color',[0 1 0],'linewidth',2);
-p(4) = plot(cntrDisp,MTDatrest,'color',[1 0 0],'linewidth',2);
-
-set(gca,'fontsize',20,'plotboxaspectratio',[1 1 1]);
-legend(p,{'Cent 10\circ','V1','V2','MT (restricted)'});
-xlabel('Horizontal disparity (\circ)');
-ylabel('Probability density');
-title([imgSet{ii}]);
-
-
-saveas(f3,[ksdDir,'2022_sceneStatsCode_Tyler/walking.svg']);
-saveas(f4,[ksdDir,'2022_sceneStatsCode_Tyler/walkingCntl.svg']);
 end
+
+
+%% Save figs
+
+if saveOn
+
+    saveas(f{1},[figDir,'sando.svg']);
+    saveas(f{2},[figDir,'sandoCntl.svg']);
+    saveas(f{3},[figDir,'walking.svg']);
+    saveas(f{4},[figDir,'walkingCntl.svg']);
+
+end
+

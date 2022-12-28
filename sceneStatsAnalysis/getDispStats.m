@@ -1,22 +1,21 @@
-function [edges_disp,f1,varargout] = getDispStats_KSD_BORIS(imSet,subset,resampIter)
+function [edges_disp,f1,varargout] = getDispStats(imSet,subset,res,resampIter)
 % For image set what are the disparity statistics?
 
 % Where am I?
-splPath  = regexp(which('getDispStats_KSD_BORIS'),filesep,'split');
-rootDir  = [filesep,fullfile(splPath{1:numel(splPath)-2}),filesep];
-imDir    = [rootDir,'NaturalImageDB/BORISimageSet/'];
-statsDir = [rootDir,'SceneStatsAnalysis',filesep,'savedImageStats_BORISdataset'];
+splPath  = regexp(which('getDispStats'),filesep,'split');
+rootDir  = [filesep,fullfile(splPath{1:numel(splPath)-1}),filesep];
+imDir    = [rootDir,'BORISimageSet',filesep];
+KSDdir   = [rootDir,'savedKSDmatFiles_BORISdataset',filesep];
+statsDir = [rootDir,'savedImageStats_BORISdataset',filesep];
 
 
 %% Collect disparities within masks and histogram
 
-res = 52;
-
-ub = 2;
-lb = -2;
+% Define disparity boundaries of histogram (deg)
+ub  = 2;
+lb  = -2;
 
 edges_disp = linspace(lb,ub,res);
-cntr_disp  = edges_disp(1:end-1) + diff(edges_disp(1:2))/2;
 
 % Labels for differential masking
 switch subset
@@ -30,11 +29,11 @@ switch subset
 end
 
 % Grab kernel-smoothed RF probability densities from datasets
-load([statsDir,'V1densityMat_BORIS.mat'])
-load([statsDir,'V2densityMat_BORIS.mat'])
-load([statsDir,'MTdensityMat_BORIS.mat'])
-load([statsDir,'circDensityMat_BORIS.mat'])
-load([statsDir,'V1V2Rect_BORIS.mat'])
+load([KSDdir,'V1densityMat_BORIS.mat'])
+load([KSDdir,'V2densityMat_BORIS.mat'])
+load([KSDdir,'MTdensityMat_BORIS.mat'])
+load([KSDdir,'circDensityMat_BORIS.mat'])
+load([KSDdir,'V1V2Rect_BORIS.mat'])
 
 % Grab disparity images from BORIS dataset
 switch imSet
@@ -71,7 +70,7 @@ switch subset
         dispHistV1V2Rect_m2 = nan(numIms,res-1);
 end
 
-
+% Loop over all images in dataset
 for ii = 1:numIms
         
     if mod(ii,50) == 0
@@ -79,10 +78,8 @@ for ii = 1:numIms
     end
     
     % For bootstrapping, select a random image from set
-    if resampIter == 0
+    if resampIter ~= 0
         imInd = randi(numIms);
-    elseif ~isempty
-        imInd = resampIter;
     else
         imInd = ii;
     end
