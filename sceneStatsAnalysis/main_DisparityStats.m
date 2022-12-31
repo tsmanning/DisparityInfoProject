@@ -22,11 +22,11 @@ addpath([imStatsDir,'BORISimageSet']);
 addpath([dataDir,'analysisFiles']);
 
 % Toggle save figures on/off
-saveOn = 0;
+saveOn = 1;
 
 % Bootstrap sampling
-numReps = 1;
-% numReps = 100;
+% numReps = 1;
+numReps = 100;
 
 % Parallel computing on (not recommended to turn off unless testing)
 parallelOn = 1;
@@ -114,5 +114,5 @@ numHistBins = res-1;
 collectBootstrapRuns(numReps,numHistBins);
 
 % Generate plots from the collected stats
-dispDistsPlots
+dispDistsPlots(saveOn);
 

@@ -1,17 +1,28 @@
+function [] = FanoFacCheck(correct_screen_disparity,subsample)
 
-% Load in data
-
-clear all
 close all
 
-% flag indicating whether to correct the stimulus disparities to account
-% for planar screen (horopter deviation and foreshortening)
+% Define path to saved distribution data
+splPath  = regexp(which('FanoFacCheck'),filesep,'split');
+rootDir  = [filesep,fullfile(splPath{1:numel(splPath)-1}),filesep];
+analyDir = [rootDir,'analysisFiles',filesep];
 
-correct_screen_disparity = 1;
-
+% Load in data
 [MT] = loadDataMT(correct_screen_disparity);
 [V1] = loadDataV1V2(1,correct_screen_disparity);
 [V2] = loadDataV1V2(2,correct_screen_disparity);
+
+% Subsample data if requested
+if subsample
+    load([analyDir,'eccInds'])
+
+    MT = MT(eccInds.MT);
+    V1 = V1(eccInds.V1);
+    V2 = V2(eccInds.V2);
+end
+
+% Toggle save on/off
+saveOn = 1;
 
 
 %% Concatenate data 
@@ -96,7 +107,7 @@ end
 
 
 %% Plot
-supp = linspace(1e-2,1e3,100);
+supp = linspace(1e-1,1e3,100);
 
 xtix = [0.01 0.1 1 10 100 1000];
 for ii = 1:numel(xtix)
@@ -106,67 +117,68 @@ end
 f1 = figure;
 f1.Position = [2000 100 1700 450];
 
+% V1 distribution
 subplot(1,3,1);
 hold on;
 
-scatter(V1dat(:,1),V1dat(:,2),'k');
+scatter(V1dat(:,1),V1dat(:,2),70,[0.6 0.6 0.6]);
 plot(supp,pLaw(pFit(1,1),supp,pFit(1,2)),'r','LineWidth',2);
-plot([1e-2 1000],[1e-2 1000],'--g','LineWidth',2);
-% set(gca,'plotboxaspectratio',[1 1 1],'xlim',[0 100],'ylim',[0 1000],'fontsize',15,'yscale','lin');
-set(gca,'plotboxaspectratio',[1 1 1],'xtick',xtix,'xticklabel',xLab,'xlim',[1e-2 1000],'ylim',[1e-2 1000],'fontsize',15,'yscale','log','xscale','log');
+plot([1e-1 1000],[1e-1 1000],'--k','LineWidth',2);
+set(gca,'plotboxaspectratio',[1 1 1],'xtick',xtix,'xticklabel',xLab,'xlim',[1e-1 1000],'ylim',[1e-1 1000],'fontsize',15,'yscale','log','xscale','log');
 xlabel('mean spike count');
 ylabel('spike count variance');
-title(['V1 (',num2str(size(V1dat,1)),')']);
-% title(['V1 (',num2str(V1cells),')']);
+title(['V1 (n=',num2str(sum(eccInds.V1,2)),')']);
 
-
+% V2 distribution
 subplot(1,3,2);
 hold on;
 
-scatter(V2dat(:,1),V2dat(:,2),'k');
+scatter(V2dat(:,1),V2dat(:,2),70,[0.6 0.6 0.6]);
 plot(supp,pLaw(pFit(2,1),supp,pFit(2,2)),'r','LineWidth',2);
-plot([1e-2 1000],[1e-2 1000],'--g','LineWidth',2);
-% set(gca,'plotboxaspectratio',[1 1 1],'xlim',[0 100],'ylim',[0 1000],'fontsize',15,'yscale','lin');
-set(gca,'plotboxaspectratio',[1 1 1],'xtick',xtix,'xticklabel',xLab,'xlim',[1e-2 1000],'ylim',[1e-2 1000],'fontsize',15,'yscale','log','xscale','log');
+plot([1e-1 1000],[1e-1 1000],'--k','LineWidth',2);
+set(gca,'plotboxaspectratio',[1 1 1],'xtick',xtix,'xticklabel',xLab,'xlim',[1e-1 1000],'ylim',[1e-1 1000],'fontsize',15,'yscale','log','xscale','log');
 xlabel('mean spike count');
 ylabel('spike count variance');
-title(['V2 (',num2str(size(V2dat,1)),')']);
-% title(['V2 (',num2str(V2cells),')']);
+title(['V2 (n=',num2str(sum(eccInds.V2,2)),')']);
 
+% MT distribution
 subplot(1,3,3);
 hold on;
 
-scatter(MTdat(:,1),MTdat(:,2),'k');
+scatter(MTdat(:,1),MTdat(:,2),70,[0.6 0.6 0.6]);
 plot(supp,pLaw(pFit(3,1),supp,pFit(3,2)),'r','LineWidth',2);
-plot([1e-2 1000],[1e-2 1000],'--g','LineWidth',2);
-% set(gca,'plotboxaspectratio',[1 1 1],'xlim',[0 100],'ylim',[0 1000],'fontsize',15,'yscale','lin');
-set(gca,'plotboxaspectratio',[1 1 1],'xtick',xtix,'xticklabel',xLab,'xlim',[1e-2 1000],'ylim',[1e-2 1000],'fontsize',15,'yscale','log','xscale','log');
+plot([1e-1 1000],[1e-1 1000],'--k','LineWidth',2);
+set(gca,'plotboxaspectratio',[1 1 1],'xtick',xtix,'xticklabel',xLab,'xlim',[1e-1 1000],'ylim',[1e-1 1000],'fontsize',15,'yscale','log','xscale','log');
 xlabel('mean spike count');
 ylabel('spike count variance');
-title(['MT (',num2str(size(MTdat,1)),')']);
-% title(['MT (',num2str(MTcells),')']);
+title(['MT (n=',num2str(sum(eccInds.MT,2)),')']);
 
-saveas(gcf,'plots/FanoFactor_scatter.png')
-saveas(gcf,'plots/FanoFactor_scatter.eps','epsc')
-
+% Plot best-fitting power law
 f2 = figure;
 f2.Position = [2000 400 1200 450];
 
 subplot(1,2,1);
+hold on;
 X = categorical({'V1','V2','MT'});
 X = reordercats(X,{'V1','V2','MT'});
 Y = pFit(:,1);
-bar(X,Y);
+bar(X,Y,'FaceColor',[0.5 0.5 0.5],'EdgeColor','none');
+plot([0 4],[1 1],'--k','linewidth',2);
 ylabel('Slope');
-set(gca,'plotboxaspectratio',[1 1 1],'fontsize',15);
+set(gca,'plotboxaspectratio',[1 1 1],'xlim',{'V1','MT'},'fontsize',15);
 
 subplot(1,2,2);
+hold on;
 Y = pFit(:,2);
-bar(X,Y);
+bar(X,Y,'FaceColor',[0.5 0.5 0.5],'EdgeColor','none');
+plot([0 4],[1 1],'--k','linewidth',2);
 ylabel('Power law');
-set(gca,'plotboxaspectratio',[1 1 1],'fontsize',15);
+set(gca,'plotboxaspectratio',[1 1 1],'xlim',{'V1','MT'},'fontsize',15);
 
-saveas(gcf,'plots/FanoFactor_fits.png')
-saveas(gcf,'plots/FanoFactor_fits.eps','epsc')
-saveas(gcf,'plots/FanoFactor_fits.svg')
+%% Save figures
+
+if saveOn
+    saveas(f1,[rootDir,'plots/FanoFactor_scatter.svg']);
+    saveas(f2,[rootDir,'plots/FanoFactor_fits.svg']);
+end
 

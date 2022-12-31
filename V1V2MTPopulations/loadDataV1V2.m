@@ -1,9 +1,16 @@
 function [experiments] = loadDataV1V2(area,correct_screen_disparity)
 
-% path to top-level data folder
-basePath = './dataV1V2Combo/';
+% Define path to saved distribution data
+splPath  = regexp(which('loadDataV1V2'),filesep,'split');
+rootDir  = [filesep,fullfile(splPath{1:numel(splPath)-1}),filesep];
+analyDir = [rootDir,'analysisFiles',filesep];
+basePath = [rootDir,'dataV1V2Combo',filesep];
 
-load([basePath '/AllDTData.mat']);
+addpath(genpath([rootDir,'helper_functions']));
+addpath(genpath([rootDir,'screen_disparity_correction']));
+
+% Load in raw data
+load([basePath,'AllDTData.mat']);
 
 experiments = {};
 cnt = 1;

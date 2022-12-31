@@ -1,16 +1,25 @@
-function[experiments] = loadDataMT(correct_screen_disparity)
+function [experiments] = loadDataMT(correct_screen_disparity)
 
-D = dir( 'dataMT/DispTunRaw*.mat' );
+% Define path to saved distribution data
+splPath  = regexp(which('FanoFacCheck'),filesep,'split');
+rootDir  = [filesep,fullfile(splPath{1:numel(splPath)-1}),filesep];
+analyDir = [rootDir,'analysisFiles',filesep];
+baseDir  = [rootDir,'dataMT',filesep];
+
+addpath(genpath([rootDir,'helper_functions']));
+addpath(genpath([rootDir,'screen_disparity_correction']));
+
+D = dir([baseDir,'DispTunRaw*.mat']);
 experiments = {}; % initialize
 
 % load meta-data to grab RF eccentricities
-T_MT = readtable('dataMT/metadataMT.xlsx');
+T_MT = readtable([baseDir,'metadataMT.xlsx']);
 
 cnt = 1;
 
 for k = 1 : numel(D)
 
-    load( ['dataMT/' D(k).name] );
+    load([baseDir,D(k).name]);
 
     % set valid indices for disparity trials
     dispInds = ddat.disparity~=-9999 & ddat.disparity~=-99 & ddat.disparity~=99 & ddat.disparity~=98;
@@ -81,7 +90,7 @@ for k = 1 : numel(D)
     %     end
 
     % store into data structure
-    experiments{cnt}.dat            = [disparities mean_count var_count trials];
+    experiments{cnt}.dat            = [disparities' mean_count var_count trials];
     experiments{cnt}.fn             = D(k).name;
     experiments{cnt}.mean_repeats   = mean_repeats;
 

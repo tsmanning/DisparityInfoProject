@@ -1,7 +1,5 @@
+function [] = dispDistsPlots(saveOn)
 % Plot disparity probability distributions used for main figs in paper and controls
-
-clear all 
-close all
 
 %% Load in KSDs
 
@@ -26,9 +24,6 @@ region      = {'Circ','V1','V2','MT','V1V2Rect'};
 % imRegionLCI = {'UpperVFLCI','LowerVFLCI','CentralLCI','PeripheralLCI','allLCI'};
 % imRegionUCI = {'UpperVFUCI','LowerVFUCI','CentralUCI','PeripheralUCI','allUCI'};
 % suff        = {'_m1','_m2','_m2','_m1',''};
-
-% Toggle saving figures on/off
-saveOn = 0;
 
 
 %% Plot disparity distributions and CIs
@@ -57,26 +52,15 @@ for ii = 1:2
 
     plot([0 0],[0 5],'--k','linewidth',2);
 
-    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-        [dispDat.(imgSet{ii}).(region{1}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{1}).('allLCI'))...
-        dispDat.(imgSet{ii}).(region{1}).('allUCI')(1)],'k','edgecolor','none','facealpha',0.5);
-    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-        [dispDat.(imgSet{ii}).(region{2}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{2}).('allLCI'))...
-        dispDat.(imgSet{ii}).(region{2}).('allUCI')(1)],blueCI,'edgecolor','none','facealpha',0.5);
-    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-        [dispDat.(imgSet{ii}).(region{3}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{3}).('allLCI'))...
-        dispDat.(imgSet{ii}).(region{3}).('allUCI')(1)],greenCI,'edgecolor','none','facealpha',0.5);
-    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-        [dispDat.(imgSet{ii}).(region{4}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{4}).('allLCI'))...
-        dispDat.(imgSet{ii}).(region{4}).('allUCI')(1)],redCI,'edgecolor','none','facealpha',0.5);
+    p(1) = shadeplot(realDat.(imgSet{ii}).(region{2}).('all'),[dispDat.(imgSet{ii}).(region{2}).('allLCI'); ...
+                     dispDat.(imgSet{ii}).(region{2}).('allUCI')],cntrDisp,blueCI,0.5,4);
+    p(2) = shadeplot(realDat.(imgSet{ii}).(region{3}).('all'),[dispDat.(imgSet{ii}).(region{3}).('allLCI'); ...
+                     dispDat.(imgSet{ii}).(region{3}).('allUCI')],cntrDisp,greenCI,0.5,4);
+    p(3) = shadeplot(realDat.(imgSet{ii}).(region{4}).('all'),[dispDat.(imgSet{ii}).(region{4}).('allLCI'); ...
+                     dispDat.(imgSet{ii}).(region{4}).('allUCI')],cntrDisp,redCI,0.5,4);
 
-    p(1) = plot(cntrDisp,realDat.(imgSet{ii}).(region{1}).('all'),'color',[0 0 0],'linewidth',2);
-    p(2) = plot(cntrDisp,realDat.(imgSet{ii}).(region{2}).('all'),'color',blueCI,'linewidth',2);
-    p(3) = plot(cntrDisp,realDat.(imgSet{ii}).(region{3}).('all'),'color',greenCI,'linewidth',2);
-    p(4) = plot(cntrDisp,realDat.(imgSet{ii}).(region{4}).('all'),'color',redCI,'linewidth',2);
-
-    set(gca,'fontsize',20,'plotboxaspectratio',[1 1 1]);
-    legend(p,{'Cent 10\circ','V1','V2','MT'});
+    set(gca,'fontsize',25,'plotboxaspectratio',[1 1 1],'ylim',[0 5],'xtick',[-2:1:2]);
+    legend(p,{'V1','V2','MT'});
     xlabel('Horizontal disparity (\circ)');
     ylabel('Probability density');
     title([imgSet{ii}]);
@@ -90,26 +74,15 @@ for ii = 1:2
 
     plot([0 0],[0 5],'--k','linewidth',2);
 
-    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-        [dispDat.(imgSet{ii}).(region{1}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{1}).('allLCI'))...
-        dispDat.(imgSet{ii}).(region{1}).('allUCI')(1)],'k','edgecolor','none','facealpha',0.5);
-    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-        [dispDat.(imgSet{ii}).(region{2}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{2}).('allLCI'))...
-        dispDat.(imgSet{ii}).(region{2}).('allUCI')(1)],'b','edgecolor','none','facealpha',0.5);
-    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-        [dispDat.(imgSet{ii}).(region{3}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{3}).('allLCI'))...
-        dispDat.(imgSet{ii}).(region{3}).('allUCI')(1)],'g','edgecolor','none','facealpha',0.5);
-    fill([cntrDisp fliplr(cntrDisp) cntrDisp(1)],...
-        [dispDat.(imgSet{ii}).(region{5}).('allUCI') fliplr(dispDat.(imgSet{ii}).(region{5}).('allLCI'))...
-        dispDat.(imgSet{ii}).(region{5}).('allUCI')(1)],'r','edgecolor','none','facealpha',1);
+    p(1) = shadeplot(realDat.(imgSet{ii}).(region{2}).('all'),[dispDat.(imgSet{ii}).(region{2}).('allLCI'); ...
+                     dispDat.(imgSet{ii}).(region{2}).('allUCI')],cntrDisp,blueCI,0.5,4);
+    p(2) = shadeplot(realDat.(imgSet{ii}).(region{3}).('all'),[dispDat.(imgSet{ii}).(region{3}).('allLCI'); ...
+                     dispDat.(imgSet{ii}).(region{3}).('allUCI')],cntrDisp,greenCI,0.5,4);
+    p(3) = shadeplot(realDat.(imgSet{ii}).(region{5}).('all'),[dispDat.(imgSet{ii}).(region{5}).('allLCI'); ...
+                     dispDat.(imgSet{ii}).(region{5}).('allUCI')],cntrDisp,redCI,0.5,4);
 
-    p(1) = plot(cntrDisp,realDat.(imgSet{ii}).(region{1}).('all'),'color',[0 0 0],'linewidth',2);
-    p(2) = plot(cntrDisp,realDat.(imgSet{ii}).(region{2}).('all'),'color',blueCI,'linewidth',2);
-    p(3) = plot(cntrDisp,realDat.(imgSet{ii}).(region{3}).('all'),'color',greenCI,'linewidth',2);
-    p(4) = plot(cntrDisp,realDat.(imgSet{ii}).(region{5}).('all'),'color',redCI,'linewidth',2);
-
-    set(gca,'fontsize',20,'plotboxaspectratio',[1 1 1]);
-    legend(p,{'Cent 10\circ','V1','V2','MT (restricted)'});
+    set(gca,'fontsize',25,'plotboxaspectratio',[1 1 1],'ylim',[0 5],'xtick',[-2:1:2]);
+    legend(p,{'V1','V2','MT (restricted)'});
     xlabel('Horizontal disparity (\circ)');
     ylabel('Probability density');
     title([imgSet{ii}]);
@@ -123,6 +96,10 @@ end
 
 if saveOn
 
+    if ~exist(figDir)
+        mkdir(figDir)
+    end
+
     saveas(f{1},[figDir,'sando.svg']);
     saveas(f{2},[figDir,'sandoCntl.svg']);
     saveas(f{3},[figDir,'walking.svg']);
@@ -130,3 +107,4 @@ if saveOn
 
 end
 
+end

@@ -12,11 +12,13 @@ flag = '_resampledEccentricities';
 
 % Define path to saved distribution data
 splPath = regexp(which('main_CompareToNDS'),filesep,'split');
-imStatsDir = [filesep,fullfile(splPath{1:numel(splPath)-2}),filesep,'SceneStatsAnalysis/savedImageStats_BORISdataset/'];
-fiDataDir  = [filesep,fullfile(splPath{1:numel(splPath)-1}),filesep,'analysisFiles',filesep];
+rootDir = [filesep,fullfile(splPath{1:numel(splPath)-2}),filesep];
+imStatsDir = [rootDir,'SceneStatsAnalysis',filesep,'savedImageStats_BORISdataset/'];
+fiDataDir  = [rootDir,'V1V2MTPopulations',filesep,'analysisFiles',filesep];
+saveDir    = [rootDir,'V1V2MTPopulations',filesep,'plots',filesep];
 
 % Toggle save figures on/off
-saveOn = 0;
+saveOn = 1;
 
 
 %% Collect data and define 
@@ -168,32 +170,32 @@ end
 %---------------------------------------------------------%
 % Plot scene data histograms for the 3 area sampling regimes
 % Food preparation
-f2 = figure; 
-f2.Position = [100 100 650 600];
-hold on;
-
-plot(cntr_disp, Sando(2,:),'color',ColorIt('b'),'linewidth',2);
-plot(cntr_disp, Sando(3,:),'color',ColorIt('g'),'linewidth',2);
-plot(cntr_disp, Sando(4,:),'color',ColorIt('r'),'linewidth',2);
-%ylim([0 max(v1*1.1)]);
-axis square; box on;
-xlabel('horizontal disparity (deg)'); 
-ylabel('Probability density');
-legend('V1','V2','MT');
-
-% Navigation
-f3 = figure; 
-f3.Position = [700 100 650 600];
-hold on;
-
-plot(cntr_disp, Walk(2,:),'color',ColorIt('b'),'linewidth',2);
-plot(cntr_disp, Walk(3,:),'color',ColorIt('g'),'linewidth',2);
-plot(cntr_disp, Walk(4,:),'color',ColorIt('r'),'linewidth',2);
-%ylim([0 max(v1*1.1)]);
-axis square; box on;
-xlabel('horizontal disparity (deg)'); 
-ylabel('Probability density');
-legend('V1','V2','MT');
+% f2 = figure; 
+% f2.Position = [100 100 650 600];
+% hold on;
+% 
+% plot(cntr_disp, Sando(2,:),'color',ColorIt('b'),'linewidth',2);
+% plot(cntr_disp, Sando(3,:),'color',ColorIt('g'),'linewidth',2);
+% plot(cntr_disp, Sando(4,:),'color',ColorIt('r'),'linewidth',2);
+% %ylim([0 max(v1*1.1)]);
+% axis square; box on;
+% xlabel('horizontal disparity (deg)'); 
+% ylabel('Probability density');
+% legend('V1','V2','MT');
+% 
+% % Navigation
+% f3 = figure; 
+% f3.Position = [700 100 650 600];
+% hold on;
+% 
+% plot(cntr_disp, Walk(2,:),'color',ColorIt('b'),'linewidth',2);
+% plot(cntr_disp, Walk(3,:),'color',ColorIt('g'),'linewidth',2);
+% plot(cntr_disp, Walk(4,:),'color',ColorIt('r'),'linewidth',2);
+% %ylim([0 max(v1*1.1)]);
+% axis square; box on;
+% xlabel('horizontal disparity (deg)'); 
+% ylabel('Probability density');
+% legend('V1','V2','MT');
 
 
 % %---------------------------------------------------------%
@@ -220,44 +222,47 @@ legend('V1','V2','MT');
 
 
 %---------------------------------------------------------%
-% Plot best fit power with error bars from disparity bootstrapping
+% Plot best fit power with error bars from disparity bootstrapping (mean +
+% STD)
 % Food preparation
-f5 = figure; 
-f5.Position = [700 700 650 600];
-hold on;
+% f5 = figure; 
+% f5.Position = [100 100 350 300];
+% hold on;
+% 
+% b = bar([1 2 3],Sando_err_min(2:4));
+% b.FaceColor = 'flat';
+% b.CData(1,:) = ColorIt('b');
+% b.CData(2,:) = ColorIt('g');
+% b.CData(3,:) = ColorIt('r');
+% er = errorbar([1 2 3],[Sando_err_min(2:4)],...
+%      [std(Sando_err_min_boot(2,:)) std(Sando_err_min_boot(3,:)) std(Sando_err_min_boot(4,:))],...
+%      [std(Sando_err_min_boot(2,:)) std(Sando_err_min_boot(3,:)) std(Sando_err_min_boot(4,:))]); 
+% er.Color = [0 0 0];                            
+% er.LineStyle = 'none';  
+% er.LineWidth = 2; 
+% ylabel('power');
+% set(gca,'xtick',[1 2 3],'xticklabel',{'V1','V2','MT'},'fontsize',20,'ylim',[0 2]);
+% box on;
 
-b = bar([1 2 3],Sando_err_min(2:4));
-b.FaceColor = 'flat';
-b.CData(1,:) = ColorIt('b');
-b.CData(2,:) = ColorIt('g');
-b.CData(3,:) = ColorIt('r');
-er = errorbar([1 2 3],[Sando_err_min(2:4)],...
-     [std(Sando_err_min_boot(2,:)) std(Sando_err_min_boot(3,:)) std(Sando_err_min_boot(4,:))],...
-     [std(Sando_err_min_boot(2,:)) std(Sando_err_min_boot(3,:)) std(Sando_err_min_boot(4,:))]); 
-er.Color = [0 0 0];                            
-er.LineStyle = 'none';  
-ylabel('power');
-set(gca,'xtick',[1 2 3],'xticklabel',{'V1','V2','MT'});
-box on;
-
-% Navigation
-f6 = figure; 
-f6.Position = [700 700 650 600];
-hold on;
-
-b = bar([1 2 3],Walk_err_min(2:4));
-b.FaceColor = 'flat';
-b.CData(1,:) = ColorIt('b');
-b.CData(2,:) = ColorIt('g');
-b.CData(3,:) = ColorIt('r');
-er = errorbar([1 2 3],[Walk_err_min(2:4)],...
-     [std(Walk_err_min_boot(2,:)) std(Walk_err_min_boot(3,:)) std(Walk_err_min_boot(4,:))],...
-     [std(Walk_err_min_boot(2,:)) std(Walk_err_min_boot(3,:)) std(Walk_err_min_boot(4,:))]); 
-er.Color = [0 0 0];                            
-er.LineStyle = 'none';  
-ylabel('power');
-set(gca,'xtick',[1 2 3],'xticklabel',{'V1','V2','MT'});
-box on;
+% % Navigation
+% f6 = figure; 
+% f6.Position = [100 400 350 300];
+% hold on;
+% 
+% b = bar([1 2 3],Walk_err_min(2:4));
+% b.FaceColor = 'flat';
+% b.CData(1,:) = ColorIt('b');
+% b.CData(2,:) = ColorIt('g');
+% b.CData(3,:) = ColorIt('r');
+% er = errorbar([1 2 3],[Walk_err_min(2:4)],...
+%      [std(Walk_err_min_boot(2,:)) std(Walk_err_min_boot(3,:)) std(Walk_err_min_boot(4,:))],...
+%      [std(Walk_err_min_boot(2,:)) std(Walk_err_min_boot(3,:)) std(Walk_err_min_boot(4,:))]); 
+% er.Color = [0 0 0];                            
+% er.LineStyle = 'none';
+% er.LineWidth = 2; 
+% ylabel('power');
+% set(gca,'xtick',[1 2 3],'xticklabel',{'V1','V2','MT'},'fontsize',20,'ylim',[0 2]);
+% box on;
 
 
 %---------------------------------------------------------%
@@ -273,18 +278,19 @@ for t = 1:2
             err_min_boot = Walk_err_min_boot;
             
         case 'Sando'
-            bins = linspace(0.5,4.5,15);
+            bins = linspace(1,2,15);
             err_min_boot = Sando_err_min_boot;
             
     end
     
     % Plot histograms of best fit powers
-    f7{t} = figure; 
+    f7{t} = figure;
+    f7{t}.Position = [500+500*(t-1) 100 650 400];
     hold on;
 
-    h1 = histogram(err_min_boot(2,:),bins,'Normalization','pdf','FaceAlpha',1);
-    h2 = histogram(err_min_boot(3,:),bins,'Normalization','pdf','FaceAlpha',1);
-    h3 = histogram(err_min_boot(4,:),bins,'Normalization','pdf','FaceAlpha',1);
+    h1 = histogram(err_min_boot(2,:),bins,'Normalization','pdf','FaceAlpha',0.5);
+    h2 = histogram(err_min_boot(3,:),bins,'Normalization','pdf','FaceAlpha',0.5);
+    h3 = histogram(err_min_boot(4,:),bins,'Normalization','pdf','FaceAlpha',0.5);
     
     h1.FaceColor = ColorIt('b');
     h2.FaceColor = ColorIt('g');
@@ -293,7 +299,8 @@ for t = 1:2
     box on;
     
     % Fit Gaussians to power histograms and add to plot
-    plt_points = linspace(min(bins),max(bins),200);
+%     plt_points = linspace(min(bins),max(bins),200);
+    plt_points = linspace(0.2,2,200);
     
     [muHat_V1,sigmaHat_V1,muCI_V1,sigmaCI_V1] = normfit(err_min_boot(2,:));
     plot(plt_points,normpdf(plt_points,muHat_V1,sigmaHat_V1),'color',ColorIt('b'),'linewidth',3);
@@ -305,7 +312,11 @@ for t = 1:2
     plot(plt_points,normpdf(plt_points,muHat_MT,sigmaHat_MT),'color',ColorIt('r'),'linewidth',3);
     
     xlim([min(bins) max(bins)]);
-    
+    set(gca,'fontsize',20,'xlim',[0.2 2],'ylim',[0 20]);
+    xlabel('Power'); 
+    ylabel('Bootstrap count');
+    title(task);
+
     % Report Mus and Cohen's D
 %     display([ task ' muHat V1 : ' num2str(muHat_V1)]);
 %     display([ task ' muHat V2 : ' num2str(muHat_V2)]);
@@ -322,6 +333,7 @@ for t = 1:2
     %---------------------------------------------------------%
     % Plot mean power and CIs as a bar plot
     f8{t} = figure; 
+    f8{t}.Position = [500+500*(t-1) 600 350 315];
     hold on;
 
     b = bar([1 2 3],[muHat_V1 muHat_V2 muHat_MT]);
@@ -334,9 +346,11 @@ for t = 1:2
         abs([muHat_V1-muCI_V1(2) muHat_V2-muCI_V2(2) muHat_MT-muCI_MT(2)]));
     er.Color = [0 0 0];
     er.LineStyle = 'none';
+    er.LineWidth = 2;
     ylabel('power');
-    set(gca,'xtick',[1 2 3],'xticklabel',{'V1','V2','MT'});
+    set(gca,'xtick',[1 2 3],'xticklabel',{'V1','V2','MT'},'fontsize',20,'ylim',[0 2]);
     box on;  
+    title(task);
     
 end
 
@@ -344,68 +358,76 @@ end
 % Overlay FI with best fit power
 % Food preparation
 f9 = figure; 
+f9.Position = [100 700 575 570];
 hold on;
 
-h(1) = plot(cntr_disp, FI(2,:),'color',ColorIt('b'),'linewidth',2);
-plot(cntr_disp, FI(3,:),'color',ColorIt('g'),'linewidth',2);
-plot(cntr_disp, FI(4,:),'color',ColorIt('r'),'linewidth',2);
+h(1) = plot(cntr_disp, FI(2,:),'color',ColorIt('b'),'linewidth',4);
+plot(cntr_disp, FI(3,:),'color',ColorIt('g'),'linewidth',4);
+plot(cntr_disp, FI(4,:),'color',ColorIt('r'),'linewidth',4);
 
-h(2) = plot(cntr_disp, (Sando(2,:).^Sando_err_min(2))./sum(Sando(2,:).^Sando_err_min(2)),':','color',ColorIt('b'),'linewidth',2);
-plot(cntr_disp, (Sando(3,:).^Sando_err_min(3))./sum(Sando(3,:).^Sando_err_min(3)),':','color',ColorIt('g'),'linewidth',2);
-plot(cntr_disp, (Sando(4,:).^Sando_err_min(4))./sum(Sando(4,:).^Sando_err_min(4)),':','color',ColorIt('r'),'linewidth',2);
+h(2) = plot(cntr_disp, (Sando(2,:).^Sando_err_min(2))./sum(Sando(2,:).^Sando_err_min(2)),':','color',ColorIt('b'),'linewidth',4);
+plot(cntr_disp, (Sando(3,:).^Sando_err_min(3))./sum(Sando(3,:).^Sando_err_min(3)),':','color',ColorIt('g'),'linewidth',4);
+plot(cntr_disp, (Sando(4,:).^Sando_err_min(4))./sum(Sando(4,:).^Sando_err_min(4)),':','color',ColorIt('r'),'linewidth',4);
 %ylim([0 max(v1*1.1)]);
 axis square; box on;
-xlabel('horizontal disparity (deg)'); ylabel('Probability density');
-legend(h,'FI','best fit p');
+xlabel('horizontal disparity (deg)'); 
+ylabel('Probability density');
+set(gca,'fontsize',20);
+legend(h,'Pop. FI','Disp. Dist.^p');
+title('sando');
 
 
 % Navigation
 f10 = figure; 
+f10.Position = [100 100 575 570];
 hold on;
 
-h(1) = plot(cntr_disp, FI(2,:),'color',ColorIt('b'),'linewidth',2);
-plot(cntr_disp, FI(3,:),'color',ColorIt('g'),'linewidth',2);
-plot(cntr_disp, FI(4,:),'color',ColorIt('r'),'linewidth',2);
+h(1) = plot(cntr_disp, FI(2,:),'color',ColorIt('b'),'linewidth',4);
+plot(cntr_disp, FI(3,:),'color',ColorIt('g'),'linewidth',4);
+plot(cntr_disp, FI(4,:),'color',ColorIt('r'),'linewidth',4);
 
-h(2) = plot(cntr_disp, (Walk(2,:).^Walk_err_min(2))./sum(Walk(2,:).^Walk_err_min(2)),':','color',ColorIt('b'),'linewidth',2);
-plot(cntr_disp, (Walk(3,:).^Walk_err_min(3))./sum(Walk(3,:).^Walk_err_min(3)),':','color',ColorIt('g'),'linewidth',2);
-plot(cntr_disp, (Walk(4,:).^Walk_err_min(4))./sum(Walk(4,:).^Walk_err_min(4)),':','color',ColorIt('r'),'linewidth',2);
+h(2) = plot(cntr_disp, (Walk(2,:).^Walk_err_min(2))./sum(Walk(2,:).^Walk_err_min(2)),':','color',ColorIt('b'),'linewidth',4);
+plot(cntr_disp, (Walk(3,:).^Walk_err_min(3))./sum(Walk(3,:).^Walk_err_min(3)),':','color',ColorIt('g'),'linewidth',4);
+plot(cntr_disp, (Walk(4,:).^Walk_err_min(4))./sum(Walk(4,:).^Walk_err_min(4)),':','color',ColorIt('r'),'linewidth',4);
 %ylim([0 max(v1*1.1)]);
 axis square; box on;
-xlabel('horizontal disparity (deg)'); ylabel('Probability density');
-legend(h,'FI','best fit p');
+xlabel('horizontal disparity (deg)'); 
+ylabel('Probability density');
+set(gca,'fontsize',20);
+legend(h,'Pop. FI','Disp. Dist.^p');
+title('walk');
 
 
 %% Save figures
 if saveOn
 
 %     % F1: RMSE between disparity distribution^p and empirical FI dists
-%     saveas(figRMSE,['./plots/NDS_comparison/FINAL_RMSE_power_fits',flag,'.eps'],'epsc');
+%     saveas(figRMSE,['./plots/NDS_comparison/FINAL_RMSE_power_fits',flag,'.svg']);
 
-    % F2: Plots of true disparity distributions for each region (food prep)
-    saveas(f2,['./plots/NDS_comparison/Disparity_p_eachRegion_Sando',flag,'.eps'],'epsc');
+%     % F2: Plots of true disparity distributions for each region (food prep)
+%     saveas(f2,[saveDir,'NDS_comparison/Disparity_p_eachRegion_Sando',flag,'.svg']);
 
-    % F3: Plots of true disparity distributions for each region (navigation)
-    saveas(f3,['./plots/NDS_comparison/Disparity_p_eachRegion_Walk',flag,'.eps'],'epsc');
+%     % F3: Plots of true disparity distributions for each region (navigation)
+%     saveas(f3,[saveDir,'NDS_comparison/Disparity_p_eachRegion_Walk',flag,'.svg']);
 
-    % F5: Bar plot of best fit power law and bootstrapped errorbars (food prep)
-    saveas(f5,['./plots/NDS_comparison/FINAL_power_Sando_errorbar',flag,'.eps'],'epsc'); 
+%     % F5: Bar plot of best fit power law and bootstrapped errorbars (food prep)
+%     saveas(f5,[saveDir,'NDS_comparison/FINAL_power_Sando_errorbar',flag,'.svg']); 
 
-    % F6: Bar plot of best fit power law and bootstrapped errorbars (navigation)
-    saveas(f6,['./plots/NDS_comparison/FINAL_power_Walk_errorbar',flag,'.eps'],'epsc'); 
+%     % F6: Bar plot of best fit power law and bootstrapped errorbars (navigation)
+%     saveas(f6,[saveDir,'NDS_comparison/FINAL_power_Walk_errorbar',flag,'.svg']); 
 
     % F7: Histograms and best fit Gaussians to histogram
-    saveas(f7{1},['./plots/NDS_comparison/FINAL_power_Walk_histogram',flag,'.eps'],'epsc');
-    saveas(f7{2},['./plots/NDS_comparison/FINAL_power_Sando_histogram',flag,'.eps'],'epsc');
+    saveas(f7{1},[saveDir,'NDS_comparison/FINAL_power_Walk_histogram',flag,'.svg']);
+    saveas(f7{2},[saveDir,'NDS_comparison/FINAL_power_Sando_histogram',flag,'.svg']);
 
-    % F8: Bar plot of best fit power law and CIs based on Gaussian fit to histogram
-    saveas(f8{1},['./plots/NDS_comparison/FINAL_power_Walk_distributions',flag,'.eps'],'epsc');
-    saveas(f8{2},['./plots/NDS_comparison/FINAL_power_Sando_distributions',flag,'.eps'],'epsc');
+    % F8: Bar plot of best fit power law and CIs based on Gaussian fit to bootstraps
+    saveas(f8{1},[saveDir,'NDS_comparison/FINAL_power_Walk_distributions',flag,'.svg']);
+    saveas(f8{2},[saveDir,'NDS_comparison/FINAL_power_Sando_distributions',flag,'.svg']);
 
     % F9: Best fit power law xformed disparity distribution vs. FI (food prep)
-    saveas(f9,['./plots/NDS_comparison/FINAL_power_Sando_fits',flag,'.eps'],'epsc');
+    saveas(f9,[saveDir,'NDS_comparison/FINAL_power_Sando_fits',flag,'.svg']);
 
     % F10: Best fit power law xformed disparity distribution vs. FI (navigation)
-    saveas(f10,['./plots/NDS_comparison/FINAL_power_Walk_fits',flag,'.eps'],'epsc');
+    saveas(f10,[saveDir,'NDS_comparison/FINAL_power_Walk_fits',flag,'.svg']);
 
 end
