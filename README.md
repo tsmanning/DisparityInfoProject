@@ -21,9 +21,9 @@ statistics.)
 - ./savedImageStats_BORISdataset - contains saved disparity stats
 - ./savedKSDmatFiles_BORISdataset - contains saved KSDs generated from neuronal data
 - ./plots - holds all the scene stats plots used in the paper
-
+---
 - main_DisparityStats.m - top level script for running the disparity statistics
-
+---
 - makeNeuronalKSD.m - makes kernel-smoothed densities to guide disparity sampling
 - KSDplots.m - visualizes resulting KSDs
 - getDispStats.m - script run on high performance cluster to sample disparity histograms from image sets
@@ -37,7 +37,7 @@ statistics.)
 - ./dataV1V2Combo - raw V1 and V2 neuronal data
 - ./plots - holds all the neuronal plots from paper
 - ./screen_disparity_correction - scripts used to put disparity supports from neuronal data into true disparity units
-
+---
 - main_FitTuningCurves.m - Used to fit all neuron responses with Gabor functions
 - main_FitTuningCurvesCustom.m - Used to fit some edge cases
 - main_AssessFits.m - Calculate histograms, etc summarizing Gabor parameters
@@ -45,7 +45,7 @@ statistics.)
 - main_CompareToNDS.m - Compare population FI and disparity image stats
 - main_reparameterizeV1.m - Resample V1 Gabor fits using V1 or MT distributions
 - supp_runFanoFacCheck.m - Top level script for running supplementary spike count stats
-
+---
 - errfun1DGabor.m - objective function for Gabor fitting
 - FanoFacCheck.m - Calculate spike count statistics from neuronal data
 - plotFigure1 - plot figure in paper
