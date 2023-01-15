@@ -7,7 +7,7 @@ clear all;
 close all;
 
 % Iterations for bootstrapping
-iterations = 250;
+iterations = 500;
 
 % Define path to saved tuning curve data
 splPath = regexp(which('main_AnalyzeFI'),filesep,'split');

@@ -41,6 +41,7 @@ redCI   = ColorIt('r');
 
 fCount = 1;
 f = cell(4,1);
+fCirc = cell(2,1);
 
 % Loop over behavioral image sets
 for ii = 1:2
@@ -89,7 +90,21 @@ for ii = 1:2
 
     fCount = fCount + 1;
 
+    fCirc{ii} = figure;
+    fCirc{ii}.Position = [1000 1000 650 600];
+    hold on;
+
+    p(1) = shadeplot(realDat.(imgSet{ii}).(region{1}).('all'),[dispDat.(imgSet{ii}).(region{1}).('allLCI'); ...
+        dispDat.(imgSet{ii}).(region{1}).('allUCI')],cntrDisp,[0 0 0],0.5,4);
+
+    set(gca,'fontsize',25,'plotboxaspectratio',[1 1 1],'ylim',[0 3.5],'xtick',[-2:1:2]);
+    legend(p(1),{'circ'});
+    xlabel('Horizontal disparity (\circ)');
+    ylabel('Probability density');
+
 end
+
+
 
 
 %% Save figs
@@ -104,6 +119,9 @@ if saveOn
     saveas(f{2},[figDir,'sandoCntl.svg']);
     saveas(f{3},[figDir,'walking.svg']);
     saveas(f{4},[figDir,'walkingCntl.svg']);
+
+    saveas(fCirc{1},[figDir,'circSando.svg']);
+    saveas(fCirc{2},[figDir,'circWalking.svg']);
 
 end
 

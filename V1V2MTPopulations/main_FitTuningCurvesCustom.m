@@ -1,6 +1,14 @@
-clear;
-addpath(genpath('./helper_functions'));
+% Handle a couple of edge cases for tuning curve fitting
 
+clear;
+
+splPath  = regexp(which('main_FitTuningCurves.m'),filesep,'split');
+topDir   = [filesep,fullfile(splPath{1:numel(splPath)-1}),filesep];
+saveDir  = [topDir,'analysisFiles',filesep];
+
+addpath([topDir,filesep,'helper_functions']);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %area = 'V1';  % max fitted spike rate exceeds measured max by a factor of
 %10, better fits acheived penalizing fits where the max fitted rate is more than
@@ -49,6 +57,7 @@ addpath(genpath('./helper_functions'));
 % Re-running with max freq as 1 cpd
 %n = 285;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % flag indicating whether to correct the stimulus disparities to account
 % for planar screen (horopter deviation and foreshortening)
@@ -94,10 +103,16 @@ S(n).s   = Sind.s;
 X(n).x   = Xind.x;
 E(n)     = Eind;
 
+if correct_screen_disparity
+    suffix = '_no correction';
+else
+    suffix = '';
+end
+
 if strcmp(area,'V1')
-    save( 'resultsV1.mat', 'FI', 'P', 'S', 'X', 'E', 'experiments' );
+    save( [saveDir,'resultsV1',suffix,'.mat'], 'FI', 'P', 'S', 'X', 'E', 'experiments' );
 elseif strcmp(area,'V2')
-    save( 'resultsV2.mat', 'FI', 'P', 'S', 'X', 'E', 'experiments' );
+    save( [saveDir,'resultsV2',suffix,'.mat'], 'FI', 'P', 'S', 'X', 'E', 'experiments' );
 elseif strcmp(area,'MT')
-    save( 'resultsMT.mat', 'FI', 'P', 'S', 'X', 'E', 'experiments' );
+    save( [saveDir,'resultsMT',suffix,'.mat'], 'FI', 'P', 'S', 'X', 'E', 'experiments' );
 end

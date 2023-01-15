@@ -3,22 +3,35 @@
 % to rerun, it's best to run the scripts one at a time, since the tuning
 % curve fitting and disparity statistics scripts take a while!
 
+clear all
+close all
+
 splPath = regexp(which('analysisPipeline'),filesep,'split');
-topDir  = [filesep,fullfile(splPath{1:numel(splPath)-2}),filesep];
-addpath(genpath([topDir,'SceneStatsAnalysis/helper_functions']));
+topDir  = [filesep,fullfile(splPath{1:numel(splPath)-1}),filesep];
+addpath(genpath([topDir,'sceneStatsAnalysis']));
+addpath(genpath([topDir,'V1V2MTPopulations']));
+addpath(genpath([topDir,'helper_functions']));
 
 
 %------------------------------(1)-------------------------------%
 % This script reads in the spiking data, processes, and fits tuning
 % curves The fits used for the paper are stored with
 % results[area]_final.mat, if it's re-run the outputs will be results[area].mat
-main_FitTuningCurves
+% - areas: flag which cell population sample we want to fit
+% areas = {'V1'};
+% areas = {'V2'};
+% areas = {'MT'};
+areas = {'V1','V2','MT'};
+
+main_FitTuningCurves(area);
 
 % Calls following custom functions:
 % - loadDataV1V2.m
 % - fit1DGabor.m
 % - loadDataMT.m
 % - errfun1DGabor.m
+% - screen2retDisp.m
+% - uniform_sample_in_range.m
 
 
 %------------------------------(2)-------------------------------%
@@ -115,3 +128,15 @@ main_reparameterizeV1
 % Plot the distribution of spike count means/variances between areas 
 % to compare "Poisson-ness"
 supp_runFanoFacCheck
+
+% Calls following custom functions:
+% - FanoFacCheck.m
+
+
+% Figure components
+%------------------------------(9)-------------------------------%
+% Plot example tuning curves used in Figures
+plotFigure1
+plotFigure4A
+plotFigure6A
+

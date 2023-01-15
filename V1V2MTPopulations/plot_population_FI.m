@@ -37,8 +37,8 @@ glMT = fitGeneralizedLaplacian( x, mt );
 
 %% Bootstrap over population to get estimate of variability in population FI and fits
 
-iters   = iterations;
-sams    = 400; % so the number of samples can be matched across regions
+iters   = iterations;   % Number of bootstrapped samples
+sams    = 400;          % Sample size for each bootstrapped sample
 
 for n = 1:iters
     
@@ -164,15 +164,16 @@ plot( x, gl, '--','color',ColorIt('r'),'linewidth',2 );
 % Plot resampled FI and fits
 f7 = figure; 
 f7.Position = [100 100 650 600];
+f7.Renderer = 'painter';
 hold on; 
 
-plot(x, lv1, 'color', [ColorIt('b') 0.1],'linewidth',0.25);
-plot(x, lv2, 'color', [ColorIt('g') 0.1],'linewidth',0.25);
-plot(x, lmt, 'color', [ColorIt('r') 0.1],'linewidth',0.25);
+plot(x, lv1, 'color', 0.5*ones(1,3) + 0.5*ColorIt('b'),'linewidth',0.25);
+plot(x, lv2, 'color', 0.5*ones(1,3) + 0.5*ColorIt('g'),'linewidth',0.25);
+plot(x, lmt, 'color', 0.5*ones(1,3) + 0.5*ColorIt('r'),'linewidth',0.25);
 
-plot(x, v1,'color',ColorIt('b'),'linewidth',2);
-plot(x, v2,'color',ColorIt('g'),'linewidth',2);
-plot(x, mt,'color',ColorIt('r'),'linewidth',2);
+plot(x, v1,'color',ColorIt('b'),'linewidth',4);
+plot(x, v2,'color',ColorIt('g'),'linewidth',4);
+plot(x, mt,'color',ColorIt('r'),'linewidth',4);
 
 ylim([0 max(lv1(:))*1.1]);
 axis square; box on;

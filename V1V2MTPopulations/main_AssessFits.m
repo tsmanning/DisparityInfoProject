@@ -1,14 +1,11 @@
 function [] = main_AssessFits(doAllSubsampling,subsampleFlags)
 % Summarize results of fitting cell populations with Gabors
 
-clear all; 
-close all;
-
 splPath  = regexp(which('main_AssessFits.m'),filesep,'split');
 topDir   = [filesep,fullfile(splPath{1:numel(splPath)-1}),filesep];
 analyDir = [topDir,'analysisFiles',filesep];
 
-addpath(genpath('./helper_functions'));
+addpath([topDir,filesep,'helper_functions']);
 
 plotallfits = 0;
 exampleFits = 0;
@@ -39,7 +36,7 @@ display(['Num TOTAL units: ' num2str(numel(V1.E)+numel(V2.E)+numel(MT.E))]);
 %% Load additional MT/V1 RF data and append to structure
 
 % Load MT metadata (RF location, original DeAngelis & Uka '03 fit pars)
-T_MT = readtable('metadataMT.xlsx');
+T_MT = readtable([topDir,'dataMT/metadataMT.xlsx']);
 
 % For each file name in experiments, find index from xls and get other data
 for f = 1:length(MT.experiments)
@@ -252,6 +249,92 @@ if doAllSubsampling
     MT.pref_disp = MT.pref_disp(eccInds.MT);
 
 end
+
+
+%% Perform omnibus + posthoc tests on distributions of parameter fits
+
+% Define area IDs and pairs of areas
+pairs  = [1 2; 1 3; 2 3];
+pairID = {'V1-V2','V1-MT','V2-MT'};
+areaID = {'V1','V2','MT'};
+parID  = {'Response offset','Amplitude','Envelope mean','Envelope std.','Frequency','Phase',...
+          'RF center eccentricity','Pref. Disparity'};
+
+% Get number of cells in each area
+cellCounts = [numel(V1.maxsps) numel(V2.maxsps) numel(MT.maxsps)];
+
+% Make arrays defining indices of concatenated parameter vector
+groupVec  = repelem(areaID,cellCounts);
+groupInds = repelem([1:3],cellCounts);
+
+kwTestp = nan(6,1);
+rsTestp = nan(6,3);
+
+% Loop over Gabor parameters
+for ii  = 1:6
+    
+    % Omnibus non-parametric test (Kruskal-Wallis test)
+    % - Concatenate all parameters into a single vector
+    if (ii == 3) || (ii == 6)
+        % - Since the main difference that affects our hypothesis here is
+        % - kurtosis, take the abs for the signed variables 
+        values      = abs([V1.P(:,ii)' V2.P(:,ii)' MT.P(:,ii)']);
+    else
+        values      = [V1.P(:,ii)' V2.P(:,ii)' MT.P(:,ii)'];
+    end
+
+    [kwTestp(ii),thisTable] = kruskalwallis(values,groupVec,'off');
+    kwTestStats{ii} = [thisTable{2,3} thisTable{2,5}];
+
+    % Post-hoc test pairs
+    if kwTestp(ii) < 0.05
+        
+        % Loop over pairs
+        for jj = 1:3
+            
+            % Make comparison groups by indexing into vector according to
+            % group indices in pairs mat
+            [rsTestp(ii,jj),~,thisStruct] = ranksum(values(groupInds==pairs(jj,1)),values(groupInds==pairs(jj,2)));
+            rsTestStats{ii,jj} = thisStruct.zval;
+
+        end
+
+    end
+
+end
+
+
+% Test eccentricity & preferred disparity distributions
+values7 = [sqrt(V1.x_pos.^2 + V1.y_pos.^2) ...
+          sqrt(V2.x_pos.^2 + V2.y_pos.^2) ...
+          sqrt(MT.x_pos.^2 + MT.y_pos.^2)];
+
+[kwTestp(7),thisTable] = kruskalwallis(values7,groupVec,'off');
+kwTestStats{7} = [thisTable{2,3} thisTable{2,5}];
+
+values8 = [V1.pref_disp V2.pref_disp MT.pref_disp];
+
+[kwTestp(8),thisTable] = kruskalwallis(values8,groupVec,'off');
+kwTestStats{8} = [thisTable{2,3} thisTable{2,5}];
+
+% Loop over pairs
+for jj = 1:3
+
+    [rsTestp(7,jj),~,thisStruct] = ranksum(values7(groupInds==pairs(jj,1)),values7(groupInds==pairs(jj,2)));
+    rsTestStats{7,jj} = thisStruct.zval;
+    [rsTestp(8,jj),~,thisStruct] = ranksum(values8(groupInds==pairs(jj,1)),values8(groupInds==pairs(jj,2)));
+    rsTestStats{8,jj} = thisStruct.zval;
+
+end
+
+
+% Collect stats into output structure
+stats.frTestp = kwTestp;
+stats.rsTestp = rsTestp;
+stats.pairID  = pairID;
+stats.parameterID  = parID;
+stats.kwTestStats  = kwTestStats;
+stats.rsTestStats  = rsTestStats;
 
 
 %% Plots
@@ -589,10 +672,13 @@ if doAllSubsampling
     V2 = V2orig;
     MT = MTorig;
 
-    save([analyDir,'resultsALL_final.mat'],'V1','V2','MT');
+    save([analyDir,'resultsALL_final.mat'],'V1','V2','MT','stats');
 else
-    save([analyDir,'resultsALL_',subsample,'.mat'],'V1','V2','MT');
+    save([analyDir,'resultsALL_',subsample,'.mat'],'V1','V2','MT','stats');
 end
+
+% Save statistics
+
 
 % % Number of repeats and error in dataset
 % saveas(f1,[topDir,'plots/AssessFits/Fit_MeanRepeatsAndError.png']);

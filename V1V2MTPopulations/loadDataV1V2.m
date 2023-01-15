@@ -3,7 +3,6 @@ function [experiments] = loadDataV1V2(area,correct_screen_disparity)
 % Define path to saved distribution data
 splPath  = regexp(which('loadDataV1V2'),filesep,'split');
 rootDir  = [filesep,fullfile(splPath{1:numel(splPath)-1}),filesep];
-analyDir = [rootDir,'analysisFiles',filesep];
 basePath = [rootDir,'dataV1V2Combo',filesep];
 
 addpath(genpath([rootDir,'helper_functions']));

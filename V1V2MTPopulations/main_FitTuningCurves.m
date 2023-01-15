@@ -1,18 +1,17 @@
-clear;
-addpath(genpath('./helper_functions'));
+function [] = main_FitTuningCurves(areas)
 
-% which areas' data to fit
-%areas = {'V1'};
-%areas = {'V2'};
-areas = {'MT'};
-% areas = {'V1','V2'};
-%areas = {'V2','MT'};
-% areas = {'V1','V2','MT'};
+close all;
+
+splPath  = regexp(which('main_FitTuningCurves.m'),filesep,'split');
+topDir   = [filesep,fullfile(splPath{1:numel(splPath)-1}),filesep];
+saveDir  = [topDir,'analysisFiles',filesep];
+
+addpath([topDir,filesep,'helper_functions']);
+
 
 % flag indicating whether to correct the stimulus disparities to account
 % for planar screen (horopter deviation and foreshortening)
-
-correct_screen_disparity = 0;
+correct_screen_disparity = 1;
 
 % V1
 if any(contains(areas,'V1'))
@@ -35,9 +34,9 @@ if any(contains(areas,'V1'))
     end
 
     if correct_screen_disparity
-        save( 'resultsV1.mat', 'FI', 'P', 'S', 'X', 'E', 'experiments' );
+        save( [saveDir,'resultsV1.mat'], 'FI', 'P', 'S', 'X', 'E', 'experiments' );
     else
-        save( 'resultsV1_no correction.mat', 'FI', 'P', 'S', 'X', 'E', 'experiments' );
+        save( [saveDir,'resultsV1_no correction.mat'], 'FI', 'P', 'S', 'X', 'E', 'experiments' );
     end
 end
 
@@ -61,9 +60,9 @@ if any(contains(areas,'V2'))
     end
 
     if correct_screen_disparity
-        save( 'resultsV2.mat', 'FI', 'P', 'S', 'X', 'E', 'experiments' );
+        save( [saveDir,'resultsV2.mat'], 'FI', 'P', 'S', 'X', 'E', 'experiments' );
     else
-        save( 'resultsV2_no correction.mat', 'FI', 'P', 'S', 'X', 'E', 'experiments' );
+        save( [saveDir,'resultsV2_no correction.mat'], 'FI', 'P', 'S', 'X', 'E', 'experiments' );
     end
 end
 
@@ -87,8 +86,10 @@ if any(contains(areas,'MT'))
     end
 
     if correct_screen_disparity
-        save( 'resultsMT.mat', 'FI', 'P', 'S', 'X', 'E', 'experiments' );
+        save( [saveDir,'resultsMT.mat'], 'FI', 'P', 'S', 'X', 'E', 'experiments' );
     else
-        save( 'resultsMT_no correction.mat', 'FI', 'P', 'S', 'X', 'E', 'experiments' );
+        save( [saveDir,'resultsMT_no correction.mat'], 'FI', 'P', 'S', 'X', 'E', 'experiments' );
     end
+end
+
 end

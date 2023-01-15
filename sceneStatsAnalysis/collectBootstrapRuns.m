@@ -88,58 +88,15 @@ for jj = 1:numel(imgSet)
 
             for ii = 1:numHistBins
 
-                if 0
-                    [thispDist,theseEdges] = histcounts(theseRuns(:,ii),numCIBins,'normalization','probability');
-                    thispDist(thispDist == 0) = eps;
-                    thisCumpDist           = cumsum(thispDist);
-                    theseCents             = theseEdges(1:end-1) + diff(theseEdges(1:2));
+                [thisKSD,theseVals] = ksdensity(theseRuns(:,ii));
 
-                    [~,LCIind] = min(abs(thisCumpDist-0.025));
-                    [~,UCIind] = min(abs(thisCumpDist-0.975));
+                thisCumDens = cumsum(thisKSD/sum(thisKSD));
 
-                    % negative: interpolate between closest ind and that below
-                    % positive: interpolate between closest ind and that above
-                    LCIsign = 0.025-thisCumpDist(LCIind);
-                    UCIsign = 0.975-thisCumpDist(UCIind);
+                [~,LCIind] = min(abs(thisCumDens - alpha/2));
+                [~,UCIind] = min(abs(thisCumDens - (1 - alpha/2)));
 
-                    if LCIind ~= 1
-                        if LCIsign<0
-                            thisLCI = interp1(thisCumpDist(LCIind-1:LCIind),theseCents(LCIind-1:LCIind),0.025);
-                        else
-                            thisLCI = interp1(thisCumpDist(LCIind:LCIind+1),theseCents(LCIind:LCIind+1),0.025);
-                        end
-                    else
-                        thisLCI = theseCents(LCIind);
-                    end
-
-                    if UCIind ~= numCIBins
-                        if UCIsign<0
-                            thisUCI = interp1(thisCumpDist(UCIind-1:UCIind),theseCents(UCIind-1:UCIind),0.975);
-                        else
-                            thisUCI = interp1(thisCumpDist(UCIind:UCIind+1),theseCents(UCIind:UCIind+1),0.975);
-                        end
-                    else
-                        thisUCI = theseCents(UCIind);
-                    end
-
-                    theseLCI(ii) = thisLCI;
-                    theseUCI(ii) = thisUCI;
-
-                    if isnan(thisLCI) || isnan(thisUCI)
-                        keyboard
-                    end
-                else
-                    [thisKSD,theseVals] = ksdensity(theseRuns(:,ii));
-
-                    thisCumDens = cumsum(thisKSD/sum(thisKSD));
-
-                    [~,LCIind] = min(abs(thisCumDens - alpha/2));
-                    [~,UCIind] = min(abs(thisCumDens - (1 - alpha/2)));
-
-%                     v1_med(ii,jj) = median(squeeze(v1_RP(:,ii,jj)),'omitnan');
-                    theseLCI(ii) = theseVals(LCIind);
-                    theseUCI(ii) = theseVals(UCIind);
-                end
+                theseLCI(ii) = theseVals(LCIind);
+                theseUCI(ii) = theseVals(UCIind);
 
             end
 

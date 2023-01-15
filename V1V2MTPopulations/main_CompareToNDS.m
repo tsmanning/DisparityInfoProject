@@ -318,17 +318,17 @@ for t = 1:2
     title(task);
 
     % Report Mus and Cohen's D
-%     display([ task ' muHat V1 : ' num2str(muHat_V1)]);
-%     display([ task ' muHat V2 : ' num2str(muHat_V2)]);
-%     display([ task ' muHat MT : ' num2str(muHat_MT)]);
-%     
+    display([ task ' muHat V1 : ' num2str(muHat_V1)]);
+    display([ task ' muHat V2 : ' num2str(muHat_V2)]);
+    display([ task ' muHat MT : ' num2str(muHat_MT)]);
+    
     D_V1_V2 = (muHat_V1 - muHat_V2) / sqrt( ( (nboots-1)*(sigmaHat_V1^2) + (nboots-1)*(sigmaHat_V2^2) ) / (2*nboots - 2) );
     D_V2_MT = (muHat_V2 - muHat_MT) / sqrt( ( (nboots-1)*(sigmaHat_V2^2) + (nboots-1)*(sigmaHat_MT^2) ) / (2*nboots - 2) );
     D_V1_MT = (muHat_V1 - muHat_MT) / sqrt( ( (nboots-1)*(sigmaHat_V1^2) + (nboots-1)*(sigmaHat_MT^2) ) / (2*nboots - 2) );
-%     
-%     display([ task ' D V1-V2 : ' num2str(D_V1_V2)]);
-%     display([ task ' D V2-MT : ' num2str(D_V2_MT)]);
-%     display([ task ' D V1-MT : ' num2str(D_V1_MT)]);
+    
+    display([ task ' D V1-V2 : ' num2str(D_V1_V2)]);
+    display([ task ' D V2-MT : ' num2str(D_V2_MT)]);
+    display([ task ' D V1-MT : ' num2str(D_V1_MT)]);
     
     %---------------------------------------------------------%
     % Plot mean power and CIs as a bar plot
@@ -397,9 +397,35 @@ set(gca,'fontsize',20);
 legend(h,'Pop. FI','Disp. Dist.^p');
 title('walk');
 
+%% Collect stats together
 
-%% Save figures
+% Mean power fit
+stats.muHat_V1 = muHat_V1;
+stats.muHat_V2 = muHat_V2;
+stats.muHat_MT = muHat_MT;
+
+stats.sigmaHat_V1 = sigmaHat_V1;
+stats.sigmaHat_V2 = sigmaHat_V2;
+stats.sigmaHat_MT = sigmaHat_MT;
+
+stats.muCI_V1 = muCI_V1;
+stats.muCI_V2 = muCI_V2;
+stats.muCI_MT = muCI_MT;
+
+% Effect sizes
+stats.D_V1_V2 = D_V1_V2;
+stats.D_V2_MT = D_V2_MT;
+stats.D_V1_MT = D_V1_MT;
+
+% Number of population bootstraps for Laplace fits
+stats.numBoots = nboots;
+
+
+%% Save stats & figures
 if saveOn
+
+    % Stats
+    save([fiDataDir,'NDSstats'],'stats');
 
 %     % F1: RMSE between disparity distribution^p and empirical FI dists
 %     saveas(figRMSE,['./plots/NDS_comparison/FINAL_RMSE_power_fits',flag,'.svg']);

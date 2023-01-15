@@ -1,9 +1,8 @@
 function [experiments] = loadDataMT(correct_screen_disparity)
 
 % Define path to saved distribution data
-splPath  = regexp(which('FanoFacCheck'),filesep,'split');
+splPath  = regexp(which('loadDataMT'),filesep,'split');
 rootDir  = [filesep,fullfile(splPath{1:numel(splPath)-1}),filesep];
-analyDir = [rootDir,'analysisFiles',filesep];
 baseDir  = [rootDir,'dataMT',filesep];
 
 addpath(genpath([rootDir,'helper_functions']));
